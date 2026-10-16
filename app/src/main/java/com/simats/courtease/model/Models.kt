@@ -1,4 +1,4 @@
-package com.example.courtease.model
+package com.simats.courtease.model
 
 enum class Role { JUDGE, LAWYER }
 

@@ -1,4 +1,4 @@
-package com.example.courtease.ui.screens
+package com.simats.courtease.ui.screens
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column

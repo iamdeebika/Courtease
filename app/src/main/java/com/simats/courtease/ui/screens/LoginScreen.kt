@@ -1,4 +1,4 @@
-package com.example.courtease.ui.screens
+package com.simats.courtease.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,7 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.example.courtease.model.Role
+import com.simats.courtease.model.Role
 
 @Composable
 fun LoginScreen(onLogin: (Role) -> Unit) {
