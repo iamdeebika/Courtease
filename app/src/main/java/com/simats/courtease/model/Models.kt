@@ -6,9 +6,14 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-enum class Role(val label: String, val designation: String, val workspace: String) {
-    JUDGE("Judge", "Judge (Presiding)", "JUDGE CHAMBERS"),
-    LAWYER("Lawyer", "Lawyer (Assigned)", "LAWYER WORKSPACE")
+enum class Role(
+    val label: String,
+    val designation: String,
+    val workspace: String,
+    val canManageCases: Boolean
+) {
+    JUDGE("Judge", "Judge (Presiding)", "JUDGE CHAMBERS", false),
+    LAWYER("Lawyer", "Lawyer (Assigned)", "LAWYER WORKSPACE", true)
 }
 
 val STAGES = listOf("Filing", "Evidence", "Hearing", "Closure")

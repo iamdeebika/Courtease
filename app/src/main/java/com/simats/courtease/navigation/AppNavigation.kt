@@ -2,6 +2,7 @@ package com.simats.courtease.navigation
 
 import android.net.Uri
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -9,17 +10,22 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.simats.courtease.data.Session
 import com.simats.courtease.ui.screens.CaseWorkspaceScreen
 import com.simats.courtease.ui.screens.CasesScreen
 import com.simats.courtease.ui.screens.CreateCaseScreen
 import com.simats.courtease.ui.screens.DashboardScreen
+import com.simats.courtease.ui.screens.ForgotPasswordScreen
 import com.simats.courtease.ui.screens.LoginScreen
 import com.simats.courtease.ui.screens.NotificationsScreen
+import com.simats.courtease.ui.screens.SignupScreen
 import com.simats.courtease.ui.screens.SplashScreen
 
 object Routes {
     const val SPLASH = "splash"
     const val LOGIN = "login"
+    const val SIGNUP = "signup"
+    const val FORGOT = "forgot"
     const val DASHBOARD = "dashboard"
     const val CASES = "cases"
     const val CREATE = "create"
@@ -47,21 +53,31 @@ private fun NavGraphBuilder.caseRoute(prefix: String, content: @Composable (Stri
 @Composable
 fun AppNavigation() {
     val nav = rememberNavController()
+    val context = LocalContext.current
     val back: () -> Unit = { nav.popBackStack() }
 
     NavHost(navController = nav, startDestination = Routes.SPLASH) {
 
         composable(Routes.SPLASH) {
             SplashScreen(onFinished = {
-                nav.navigate(Routes.LOGIN) { popUpTo(Routes.SPLASH) { inclusive = true } }
+                val next = if (Session.isLoggedIn) Routes.DASHBOARD else Routes.LOGIN
+                nav.navigate(next) { popUpTo(Routes.SPLASH) { inclusive = true } }
             })
         }
 
         composable(Routes.LOGIN) {
-            LoginScreen(onSignedIn = {
-                nav.navigate(Routes.DASHBOARD) { popUpTo(Routes.LOGIN) { inclusive = true } }
-            })
+            LoginScreen(
+                onLoggedIn = {
+                    nav.navigate(Routes.DASHBOARD) { popUpTo(Routes.LOGIN) { inclusive = true } }
+                },
+                onSignup = { nav.navigate(Routes.SIGNUP) },
+                onForgot = { nav.navigate(Routes.FORGOT) }
+            )
         }
+
+        composable(Routes.SIGNUP) { SignupScreen(onBack = back, onDone = back) }
+
+        composable(Routes.FORGOT) { ForgotPasswordScreen(onBack = back, onDone = back) }
 
         composable(Routes.DASHBOARD) {
             DashboardScreen(
@@ -69,7 +85,10 @@ fun AppNavigation() {
                 onViewAll = { nav.navigate(Routes.CASES) },
                 onCreate = { nav.navigate(Routes.CREATE) },
                 onNotifications = { nav.navigate(Routes.NOTIFICATIONS) },
-                onLogout = { nav.navigate(Routes.LOGIN) { popUpTo(0) } }
+                onLogout = {
+                    Session.clear(context)
+                    nav.navigate(Routes.LOGIN) { popUpTo(0) }
+                }
             )
         }
 
@@ -93,7 +112,7 @@ fun AppNavigation() {
             CaseWorkspaceScreen(
                 caseNo = no,
                 onBack = back,
-                // The tool screens are added in Sprints 2 to 4.
+                // The tool screens are added in later sprints.
                 onDocs = { },
                 onAnalysis = { },
                 onIssues = { },

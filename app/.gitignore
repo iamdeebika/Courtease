@@ -6,3 +6,6 @@ secrets.properties
 .gradle/
 build/
 .idea/
+backend/.env
+backend/venv/
+__pycache__/

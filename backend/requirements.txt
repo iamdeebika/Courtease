@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pymysql
+cryptography
+pydantic[email]
+python-dotenv
+bcrypt
+PyJWT
