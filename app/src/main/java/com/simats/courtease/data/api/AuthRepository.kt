@@ -30,9 +30,9 @@ object AuthRepository {
             else -> ApiResult.Err(errorMessage(response))
         }
     } catch (e: IOException) {
-        ApiResult.Err("Can't reach the server. Check the connection.")
+        ApiResult.Err("Can't reach the server (${e.javaClass.simpleName}: ${e.message})")
     } catch (e: Exception) {
-        ApiResult.Err("Something went wrong. Try again.")
+        ApiResult.Err("Error (${e.javaClass.simpleName}: ${e.message})")
     }
 
     private fun errorMessage(response: Response<*>): String = try {
