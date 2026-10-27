@@ -1,58 +1,37 @@
 package com.simats.courtease.ui.theme
 
-import android.app.Activity
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
+// Palette taken from the Figma designs.
+object CE {
+    val Navy = Color(0xFF132E45)
+    val Teal = Color(0xFF2F6B6B)
+    val Mint = Color(0xFFE6F0EE)
+    val Bg = Color(0xFFF4F6F8)
+    val Border = Color(0xFFD9E0E6)
+    val Track = Color(0xFFDDE3E8)
+    val Muted = Color(0xFF5F6B76)
+    val Chip = Color(0xFFEDF0F3)
+    val Amber = Color(0xFFFFF1D6)
+    val AmberText = Color(0xFF8A5A00)
+    val Red = Color(0xFFB3261E)
+}
 
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+private val Scheme = lightColorScheme(
+    primary = CE.Teal,
     onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    secondary = CE.Navy,
+    background = CE.Bg,
+    surface = Color.White,
+    onBackground = CE.Navy,
+    onSurface = CE.Navy
 )
 
+// Light theme only, so the screens match the Figma designs on every phone.
 @Composable
-fun CourtEaseTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
-) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+fun CourtEaseTheme(content: @Composable () -> Unit) {
+    MaterialTheme(colorScheme = Scheme, content = content)
 }
