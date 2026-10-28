@@ -2,19 +2,26 @@ package com.simats.courtease.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.simats.courtease.data.Session
 import com.simats.courtease.model.AccountStatus
 import com.simats.courtease.model.Role
 import com.simats.courtease.model.User
 import com.simats.courtease.ui.screens.AccountRequestsScreen
+import com.simats.courtease.ui.screens.AllocationScreen
+import com.simats.courtease.ui.screens.AuditLogScreen
 import com.simats.courtease.ui.screens.ComingSoonScreen
 import com.simats.courtease.ui.screens.DirectoryScreen
+import com.simats.courtease.ui.screens.FilingQueueScreen
 import com.simats.courtease.ui.screens.ForgotPasswordScreen
 import com.simats.courtease.ui.screens.LoginScreen
+import com.simats.courtease.ui.screens.NoticesScreen
 import com.simats.courtease.ui.screens.RegistryDashboardScreen
+import com.simats.courtease.ui.screens.ScrutinyScreen
 import com.simats.courtease.ui.screens.SignupScreen
 import com.simats.courtease.ui.screens.SplashScreen
 import com.simats.courtease.ui.screens.StatusScreen
@@ -28,6 +35,11 @@ object Routes {
     const val REGISTRY = "registry"
     const val ACCOUNTS = "accounts"
     const val DIRECTORY = "directory"
+    const val QUEUE = "queue"
+    const val SCRUTINY = "scrutiny"
+    const val ALLOCATION = "allocation"
+    const val NOTICES = "notices"
+    const val AUDIT = "audit"
     const val LAWYER = "lawyer"
     const val JUDGE = "judge"
 }
@@ -84,17 +96,33 @@ fun AppNavigation() {
             )
         }
 
+        // ---------- registry ----------
         composable(Routes.REGISTRY) {
             RegistryDashboardScreen(
                 onAccounts = { nav.navigate(Routes.ACCOUNTS) },
                 onDirectory = { nav.navigate(Routes.DIRECTORY) },
-                onSignOut = signOut
+                onSignOut = signOut,
+                onQueue = { nav.navigate(Routes.QUEUE) },
+                onAllocation = { nav.navigate(Routes.ALLOCATION) },
+                onNotices = { nav.navigate(Routes.NOTICES) },
+                onAudit = { nav.navigate(Routes.AUDIT) }
             )
         }
 
         composable(Routes.ACCOUNTS) { AccountRequestsScreen(onBack = back) }
-
         composable(Routes.DIRECTORY) { DirectoryScreen(onBack = back) }
+        composable(Routes.QUEUE) {
+            FilingQueueScreen(onBack = back, onOpen = { id -> nav.navigate("${Routes.SCRUTINY}/$id") })
+        }
+        composable(
+            "${Routes.SCRUTINY}/{id}",
+            arguments = listOf(navArgument("id") { type = NavType.IntType })
+        ) { entry ->
+            ScrutinyScreen(caseId = entry.arguments?.getInt("id") ?: 0, onBack = back)
+        }
+        composable(Routes.ALLOCATION) { AllocationScreen(onBack = back) }
+        composable(Routes.NOTICES) { NoticesScreen(onBack = back) }
+        composable(Routes.AUDIT) { AuditLogScreen(onBack = back) }
 
         // Built in parts F3 and F4.
         composable(Routes.LAWYER) { ComingSoonScreen(onSignOut = signOut) }

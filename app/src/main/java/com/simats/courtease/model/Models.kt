@@ -86,7 +86,12 @@ data class CaseFile(
     val filedAt: Long = 0L
 )
 
-val CaseFile.label: String get() = if (caseNo.isBlank()) "Draft #$id" else caseNo
+val CaseFile.label: String
+    get() = when {
+        caseNo.isNotBlank() -> caseNo
+        status == CaseStatus.DRAFT -> "Draft #$id"
+        else -> "Filing #$id"
+    }
 
 data class Doc(
     val id: Int,

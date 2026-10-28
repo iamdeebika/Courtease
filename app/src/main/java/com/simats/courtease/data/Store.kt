@@ -210,7 +210,7 @@ object Store {
         return null
     }
 
-    // ---------- registry: filings (screens come in part F2) ----------
+    // ---------- registry: filings ----------
 
     fun filingQueue(): List<CaseFile> =
         state.cases.filter { it.status == CaseStatus.FILED }.sortedBy { it.filedAt }
@@ -366,13 +366,19 @@ object Store {
                 caseNo = "OS 7/2026", feeAmount = "3,500", feeReceipt = "RC-77120",
                 judgeId = 3, courtroom = "Court Hall 2", caseCode = "CE-7K2P9",
                 responseDue = Dates.plusDays(30), filedAt = now - 6 * day
+            ),
+            CaseFile(
+                14, "Arun vs Greenfield Builders", "Civil · Recovery suit", "Civil Court, Chennai",
+                "Arun", "Greenfield Builders", CaseStatus.FILED, claimantTeam = listOf(5),
+                filedAt = now - 2 * day
             )
         )
         val docs = listOf(
             Doc(10, 8, "Plaint - Ravi vs Kumar Traders.pdf", "Plaint", Side.CLAIMANT, true, 4, 24, now - day),
             Doc(11, 8, "Vakalatnama.pdf", "Vakalatnama", Side.CLAIMANT, true, 4, 2, now - day),
             Doc(12, 9, "Plaint - Meena vs Sundaram.pdf", "Plaint", Side.CLAIMANT, true, 4, 18, now - 6 * day),
-            Doc(13, 9, "Vakalatnama.pdf", "Vakalatnama", Side.CLAIMANT, true, 4, 2, now - 6 * day)
+            Doc(13, 9, "Vakalatnama.pdf", "Vakalatnama", Side.CLAIMANT, true, 4, 2, now - 6 * day),
+            Doc(15, 14, "Plaint - Arun vs Greenfield.pdf", "Plaint", Side.CLAIMANT, true, 5, 12, now - 2 * day)
         )
         return AppState(users = users, cases = cases, docs = docs, nextId = 100)
     }
