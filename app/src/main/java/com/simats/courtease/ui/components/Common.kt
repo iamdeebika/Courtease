@@ -63,26 +63,12 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.simats.courtease.data.CaseRepository
-import com.simats.courtease.model.CivilCase
+
 import com.simats.courtease.ui.theme.CE
 
 // ---------- helpers ----------
 
-@Composable
-fun rememberCase(caseNo: String): CivilCase? {
-    val cases by CaseRepository.cases.collectAsState()
-    return cases.firstOrNull { it.caseNo == caseNo }
-}
 
-fun shareText(context: Context, subject: String, text: String) {
-    val intent = Intent(Intent.ACTION_SEND).apply {
-        type = "text/plain"
-        putExtra(Intent.EXTRA_SUBJECT, subject)
-        putExtra(Intent.EXTRA_TEXT, text)
-    }
-    context.startActivity(Intent.createChooser(intent, subject))
-}
 
 // ---------- scaffold ----------
 
@@ -276,24 +262,8 @@ fun ToolRow(icon: ImageVector, title: String, subtitle: String, onClick: () -> U
     }
 }
 
-@Composable
-fun CaseCard(c: CivilCase, onClick: () -> Unit) {
-    CourtCard(onClick = onClick) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(c.caseNo, color = CE.Muted, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.weight(1f))
-            Pill(c.stage)
-        }
-        Spacer(Modifier.height(10.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(c.title, color = CE.Navy, fontSize = 22.sp)
-                Text("${c.court} · ${c.documents} documents", color = CE.Muted, fontSize = 15.sp)
-            }
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = CE.Teal)
-        }
-    }
-}
+
+
 
 @Composable
 fun StageProgress(stage: String, stages: List<String>) {
