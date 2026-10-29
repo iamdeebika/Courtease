@@ -9,28 +9,33 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import com.simats.courtease.data.Store
+import com.simats.courtease.data.AccountRepo
 import com.simats.courtease.ui.components.AuthField
 import com.simats.courtease.ui.components.AuthScaffold
 import com.simats.courtease.ui.components.ErrorLine
 import com.simats.courtease.ui.components.GradientButton
 import com.simats.courtease.ui.components.ShowHideButton
+import kotlinx.coroutines.launch
 
 @Composable
 fun ForgotPasswordScreen(onBack: () -> Unit, onDone: () -> Unit) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirm by remember { mutableStateOf("") }
     var hidden by remember { mutableStateOf(true) }
+    var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
     fun submit() {
+        if (loading) return
         when {
             email.isBlank() -> { error = "Enter your email"; return }
             phone.isBlank() -> { error = "Enter your registered phone"; return }
@@ -39,12 +44,17 @@ fun ForgotPasswordScreen(onBack: () -> Unit, onDone: () -> Unit) {
             }
             password != confirm -> { error = "Passwords don't match"; return }
         }
-        val result = Store.resetPassword(email, phone, password)
-        if (result == null) {
-            Toast.makeText(context, "Password updated. Sign in.", Toast.LENGTH_LONG).show()
-            onDone()
-        } else {
-            error = result
+        loading = true
+        error = null
+        scope.launch {
+            val result = AccountRepo.resetPassword(email, phone, password)
+            loading = false
+            if (result == null) {
+                Toast.makeText(context, "Password updated. Sign in.", Toast.LENGTH_LONG).show()
+                onDone()
+            } else {
+                error = result
+            }
         }
     }
 
@@ -61,6 +71,6 @@ fun ForgotPasswordScreen(onBack: () -> Unit, onDone: () -> Unit) {
             keyboardType = KeyboardType.Password, masked = hidden, imeAction = ImeAction.Done
         )
         ErrorLine(error)
-        GradientButton("Reset password") { submit() }
+        GradientButton("Reset password", loading) { submit() }
     }
 }

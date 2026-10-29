@@ -16,18 +16,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.simats.courtease.data.AccountRepo
+import com.simats.courtease.data.Session
 import com.simats.courtease.ui.components.AuthGold
 import com.simats.courtease.ui.components.AuthNavyDeep
 import com.simats.courtease.ui.theme.CE
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
 
 @Composable
 fun SplashScreen(onFinished: () -> Unit) {
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
-        delay(1400)
+        val started = System.currentTimeMillis()
+        if (Session.userId != 0) {
+            // Refresh the account from the server. If the server can't be reached, carry on with what the phone has.
+            val valid = withTimeoutOrNull(4000) { AccountRepo.syncAll() } ?: true
+            if (!valid) Session.logout(context)
+        }
+        val wait = 1400 - (System.currentTimeMillis() - started)
+        if (wait > 0) delay(wait)
         onFinished()
     }
     Box(

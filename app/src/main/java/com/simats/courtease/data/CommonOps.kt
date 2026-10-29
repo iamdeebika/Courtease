@@ -10,6 +10,14 @@ object CommonOps {
 
     fun markRead(notifId: Int) {
         Store.update { s -> s.copy(notifs = s.notifs.map { if (it.id == notifId) it.copy(read = true) else it }) }
+        if (notifId >= AccountRepo.SERVER_NOTIF_BASE) {
+            AccountRepo.markReadInBackground(notifId - AccountRepo.SERVER_NOTIF_BASE)
+        }
+    }
+
+    fun markAllRead(userId: Int) {
+        Store.markAllRead(userId)
+        AccountRepo.markAllReadInBackground()
     }
 
     fun updateProfile(userId: Int, name: String, phone: String): String? {

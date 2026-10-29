@@ -37,7 +37,7 @@ fun NotificationsScreen(onBack: () -> Unit, onOpen: (Int) -> Unit) {
         )
 
         if (unread > 0) {
-            OutlineButton("Mark all as read", { Store.markAllRead(me) }, Modifier.fillMaxWidth())
+            OutlineButton("Mark all as read", { CommonOps.markAllRead(me) }, Modifier.fillMaxWidth())
         }
 
         if (items.isEmpty()) {

@@ -330,6 +330,36 @@ object Store {
         log(registrarId, "Reissued case code", "${c.label} → $code")
         return null
     }
+    // ---------- server sync helpers ----------
+
+    internal fun replaceUsers(list: List<User>) {
+        if (state.users == list) return
+        update { it.copy(users = list) }
+    }
+
+    internal fun upsertUser(u: User) {
+        val old = state.users.firstOrNull { it.id == u.id }
+        if (old == u) return
+        update { s ->
+            s.copy(users = if (old != null) s.users.map { if (it.id == u.id) u else it } else s.users + u)
+        }
+    }
+
+    internal fun replaceServerNotifs(userId: Int, items: List<Notif>) {
+        val kept = state.notifs.filterNot { it.userId == userId && it.id >= 1_000_000 }
+        val merged = kept + items
+        if (merged == state.notifs) return
+        update { it.copy(notifs = merged) }
+    }
+
+    // Clears the case data on this phone but keeps the accounts that came from the server.
+    fun resetCases() {
+        state = seed().copy(
+            users = state.users,
+            notifs = state.notifs.filter { it.id >= 1_000_000 }
+        )
+        persist()
+    }
 
     // ---------- demo data ----------
 

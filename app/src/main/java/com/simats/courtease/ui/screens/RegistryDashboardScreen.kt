@@ -39,6 +39,8 @@ import com.simats.courtease.ui.components.StatCard
 import com.simats.courtease.ui.components.ToolRow
 import com.simats.courtease.ui.components.WarnBanner
 import com.simats.courtease.ui.theme.CE
+import androidx.compose.runtime.LaunchedEffect
+import com.simats.courtease.data.AccountRepo
 
 @Composable
 fun RegistryDashboardScreen(
@@ -61,6 +63,7 @@ fun RegistryDashboardScreen(
     val toNotice = s.cases.count { it.status == CaseStatus.ALLOCATED }
     val overdue = Store.overdue().size
     var confirmReset by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { AccountRepo.syncAll() }
 
     CourtScaffold(
         actions = {
@@ -101,13 +104,13 @@ fun RegistryDashboardScreen(
     if (confirmReset) {
         AlertDialog(
             onDismissRequest = { confirmReset = false },
-            title = { Text("Reset demo data?") },
-            text = { Text("All accounts, cases and logs return to the starting demo. Accounts you created are removed.") },
+            title = { Text("Reset case data?") },
+            text = { Text("Cases, documents and orders on this phone return to the starting demo. Accounts stay.") },
             confirmButton = {
                 TextButton(onClick = {
                     confirmReset = false
-                    Store.resetDemo()
-                    Toast.makeText(context, "Demo data reset", Toast.LENGTH_SHORT).show()
+                    Store.resetCases()
+                    Toast.makeText(context, "Case data reset", Toast.LENGTH_SHORT).show()
                 }) { Text("Reset", color = CE.Red) }
             },
             dismissButton = { TextButton(onClick = { confirmReset = false }) { Text("Cancel") } }

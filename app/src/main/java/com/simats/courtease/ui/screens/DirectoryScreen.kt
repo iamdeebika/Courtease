@@ -10,16 +10,18 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.simats.courtease.data.Session
+import com.simats.courtease.data.AccountRepo
 import com.simats.courtease.data.Store
 import com.simats.courtease.model.AccountStatus
 import com.simats.courtease.model.Role
@@ -35,6 +37,7 @@ import com.simats.courtease.ui.components.Pill
 import com.simats.courtease.ui.components.ScreenHeader
 import com.simats.courtease.ui.components.SearchField
 import com.simats.courtease.ui.theme.CE
+import kotlinx.coroutines.launch
 
 @Composable
 fun DirectoryScreen(onBack: () -> Unit) {
@@ -42,6 +45,8 @@ fun DirectoryScreen(onBack: () -> Unit) {
     var query by remember { mutableStateOf("") }
     var filter by remember { mutableStateOf("All") }
     var selected by remember { mutableStateOf<User?>(null) }
+
+    LaunchedEffect(Unit) { AccountRepo.syncAll() }
 
     val people = Store.state.users
         .filter { it.role != Role.REGISTRY && it.status != AccountStatus.PENDING }
@@ -97,7 +102,9 @@ fun DirectoryScreen(onBack: () -> Unit) {
 
 @Composable
 private fun UserDialog(u: User, onResult: (String) -> Unit, onDismiss: () -> Unit) {
+    val scope = rememberCoroutineScope()
     var reason by remember { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     val suspended = u.status == AccountStatus.SUSPENDED
     val canChange = u.status == AccountStatus.APPROVED || suspended
@@ -122,11 +129,19 @@ private fun UserDialog(u: User, onResult: (String) -> Unit, onDismiss: () -> Uni
         confirmButton = {
             if (canChange) {
                 TextButton(onClick = {
-                    val result = Store.setSuspended(u.id, Session.userId, !suspended, reason)
-                    if (result != null) error = result
-                    else onResult(if (suspended) "Account reinstated" else "Account suspended")
+                    if (busy) return@TextButton
+                    busy = true
+                    scope.launch {
+                        val result = AccountRepo.setSuspended(u.id, !suspended, reason)
+                        busy = false
+                        if (result != null) error = result
+                        else onResult(if (suspended) "Account reinstated" else "Account suspended")
+                    }
                 }) {
-                    Text(if (suspended) "Reinstate" else "Suspend", color = if (suspended) CE.Teal else CE.Red)
+                    Text(
+                        if (busy) "Working..." else if (suspended) "Reinstate" else "Suspend",
+                        color = if (suspended) CE.Teal else CE.Red
+                    )
                 }
             }
         },
