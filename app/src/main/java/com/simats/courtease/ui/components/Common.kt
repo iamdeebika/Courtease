@@ -97,8 +97,31 @@ fun CourtTopBar(onBack: (() -> Unit)?, actions: @Composable RowScope.() -> Unit)
 
 @Composable
 fun BarIcon(icon: ImageVector, description: String, onClick: () -> Unit) {
-    IconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
-        Icon(icon, description, tint = Color.White)
+    val badge = if (description == "Alerts") {
+        com.simats.courtease.data.Store.unread(com.simats.courtease.data.Session.userId)
+    } else {
+        0
+    }
+    Box(Modifier.size(40.dp)) {
+        IconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
+            Icon(icon, description, tint = Color.White)
+        }
+        if (badge > 0) {
+            Box(
+                Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 2.dp, end = 2.dp)
+                    .size(18.dp)
+                    .clip(CircleShape)
+                    .background(CE.Red),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    if (badge > 9) "9+" else badge.toString(),
+                    color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold
+                )
+            }
+        }
     }
 }
 

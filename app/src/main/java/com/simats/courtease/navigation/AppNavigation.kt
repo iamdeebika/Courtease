@@ -7,7 +7,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.simats.courtease.data.CaseOps
 import com.simats.courtease.data.Session
+import com.simats.courtease.data.Store
 import com.simats.courtease.model.AccountStatus
 import com.simats.courtease.model.Role
 import com.simats.courtease.model.User
@@ -27,6 +29,8 @@ import com.simats.courtease.ui.screens.LawyerCaseScreen
 import com.simats.courtease.ui.screens.LawyerDashboardScreen
 import com.simats.courtease.ui.screens.LoginScreen
 import com.simats.courtease.ui.screens.NoticesScreen
+import com.simats.courtease.ui.screens.NotificationsScreen
+import com.simats.courtease.ui.screens.ProfileScreen
 import com.simats.courtease.ui.screens.RegistryDashboardScreen
 import com.simats.courtease.ui.screens.ScrutinyScreen
 import com.simats.courtease.ui.screens.SignupScreen
@@ -40,6 +44,8 @@ object Routes {
     const val SIGNUP = "signup"
     const val FORGOT = "forgot"
     const val STATUS = "status"
+    const val ALERTS = "alerts"
+    const val PROFILE = "profile"
 
     const val REGISTRY = "registry"
     const val ACCOUNTS = "accounts"
@@ -82,6 +88,8 @@ fun AppNavigation() {
         Session.logout(context)
         nav.navigate(Routes.LOGIN) { popUpTo(0) }
     }
+    val openAlerts: () -> Unit = { nav.navigate(Routes.ALERTS) }
+    val openProfile: () -> Unit = { nav.navigate(Routes.PROFILE) }
 
     NavHost(navController = nav, startDestination = Routes.SPLASH) {
 
@@ -115,6 +123,27 @@ fun AppNavigation() {
             )
         }
 
+        // ---------- common ----------
+        composable(Routes.ALERTS) {
+            NotificationsScreen(
+                onBack = back,
+                onOpen = { caseId ->
+                    val u = Session.user
+                    val c = Store.caseById(caseId)
+                    when {
+                        u == null || c == null -> {}
+                        u.role == Role.REGISTRY -> nav.navigate("${Routes.SCRUTINY}/$caseId")
+                        u.role == Role.JUDGE && c.judgeId == u.id -> nav.navigate("${Routes.JCASE}/$caseId")
+                        u.role == Role.LAWYER && CaseOps.sideOf(c, u.id) != null ->
+                            nav.navigate("${Routes.LCASE}/$caseId")
+                        else -> {}
+                    }
+                }
+            )
+        }
+
+        composable(Routes.PROFILE) { ProfileScreen(onBack = back, onSignOut = signOut) }
+
         // ---------- registry ----------
         composable(Routes.REGISTRY) {
             RegistryDashboardScreen(
@@ -124,7 +153,9 @@ fun AppNavigation() {
                 onQueue = { nav.navigate(Routes.QUEUE) },
                 onAllocation = { nav.navigate(Routes.ALLOCATION) },
                 onNotices = { nav.navigate(Routes.NOTICES) },
-                onAudit = { nav.navigate(Routes.AUDIT) }
+                onAudit = { nav.navigate(Routes.AUDIT) },
+                onNotifications = openAlerts,
+                onProfile = openProfile
             )
         }
         composable(Routes.ACCOUNTS) { AccountRequestsScreen(onBack = back) }
@@ -145,7 +176,9 @@ fun AppNavigation() {
                 onOpenCase = { id -> nav.navigate("${Routes.LCASE}/$id") },
                 onFileCase = { nav.navigate("${Routes.LFORM}/0") },
                 onJoinCase = { nav.navigate(Routes.LJOIN) },
-                onSignOut = signOut
+                onSignOut = signOut,
+                onNotifications = openAlerts,
+                onProfile = openProfile
             )
         }
 
@@ -202,7 +235,9 @@ fun AppNavigation() {
             JudgeDashboardScreen(
                 onOpenCase = { id -> nav.navigate("${Routes.JCASE}/$id") },
                 onAllCases = { nav.navigate(Routes.JCASES) },
-                onSignOut = signOut
+                onSignOut = signOut,
+                onNotifications = openAlerts,
+                onProfile = openProfile
             )
         }
 
