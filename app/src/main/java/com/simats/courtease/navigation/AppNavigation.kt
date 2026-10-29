@@ -14,13 +14,15 @@ import com.simats.courtease.model.User
 import com.simats.courtease.ui.screens.AccountRequestsScreen
 import com.simats.courtease.ui.screens.AllocationScreen
 import com.simats.courtease.ui.screens.AuditLogScreen
+import com.simats.courtease.ui.screens.BenchCaseScreen
 import com.simats.courtease.ui.screens.CaseFormScreen
-import com.simats.courtease.ui.screens.ComingSoonScreen
 import com.simats.courtease.ui.screens.DirectoryScreen
 import com.simats.courtease.ui.screens.DocumentsScreen
 import com.simats.courtease.ui.screens.FilingQueueScreen
 import com.simats.courtease.ui.screens.ForgotPasswordScreen
 import com.simats.courtease.ui.screens.JoinCaseScreen
+import com.simats.courtease.ui.screens.JudgeCasesScreen
+import com.simats.courtease.ui.screens.JudgeDashboardScreen
 import com.simats.courtease.ui.screens.LawyerCaseScreen
 import com.simats.courtease.ui.screens.LawyerDashboardScreen
 import com.simats.courtease.ui.screens.LoginScreen
@@ -56,6 +58,8 @@ object Routes {
     const val LJOIN = "ljoin"
 
     const val JUDGE = "judge"
+    const val JCASES = "jcases"
+    const val JCASE = "jcase"
 }
 
 // Where a signed-in user lands.
@@ -164,7 +168,6 @@ fun AppNavigation() {
                 onBack = back,
                 onSaved = { savedId ->
                     if (id == 0) {
-                        // New case: open its workspace and drop the form from the back stack.
                         nav.navigate("${Routes.LCASE}/$savedId") {
                             popUpTo("${Routes.LFORM}/0") { inclusive = true }
                         }
@@ -194,7 +197,25 @@ fun AppNavigation() {
             )
         }
 
-        // Built in part F4.
-        composable(Routes.JUDGE) { ComingSoonScreen(onSignOut = signOut) }
+        // ---------- judge ----------
+        composable(Routes.JUDGE) {
+            JudgeDashboardScreen(
+                onOpenCase = { id -> nav.navigate("${Routes.JCASE}/$id") },
+                onAllCases = { nav.navigate(Routes.JCASES) },
+                onSignOut = signOut
+            )
+        }
+
+        composable(Routes.JCASES) {
+            JudgeCasesScreen(onBack = back, onOpenCase = { id -> nav.navigate("${Routes.JCASE}/$id") })
+        }
+
+        composable("${Routes.JCASE}/{id}", arguments = idArg) { entry ->
+            BenchCaseScreen(
+                caseId = entry.arguments?.getInt("id") ?: 0,
+                onBack = back,
+                onRecused = back
+            )
+        }
     }
 }

@@ -284,7 +284,11 @@ object Store {
         updateCase(caseId) {
             it.copy(
                 judgeId = judgeId, court = judge.court, courtroom = judge.courtroom,
-                status = CaseStatus.ALLOCATED,
+                status = when {
+                    c.caseCode.isBlank() -> CaseStatus.ALLOCATED
+                    c.respondentTeam.isEmpty() -> CaseStatus.NOTICE
+                    else -> CaseStatus.PLEADINGS
+                },
                 registryNote = if (reason.isNotBlank()) "Allocation note: ${reason.trim()}" else ""
             )
         }

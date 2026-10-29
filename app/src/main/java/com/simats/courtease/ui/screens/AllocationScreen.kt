@@ -62,7 +62,11 @@ fun AllocationScreen(onBack: () -> Unit) {
         SectionTitle("Awaiting allocation")
         if (waiting.isEmpty()) EmptyCard("All clear", "Registered cases appear here.")
         waiting.forEach { c ->
-            RegistryCaseCard(c, detail = "Tap to allocate", onClick = { selected = c })
+            RegistryCaseCard(
+                c,
+                detail = c.registryNote.ifBlank { "Tap to allocate" },
+                onClick = { selected = c }
+            )
         }
 
         SectionTitle("Recently allocated")
