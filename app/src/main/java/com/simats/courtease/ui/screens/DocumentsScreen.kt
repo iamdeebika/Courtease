@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
@@ -11,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,6 +20,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.simats.courtease.data.CaseOps
+import com.simats.courtease.data.CaseRepo
+import com.simats.courtease.data.FileOps
 import com.simats.courtease.data.Session
 import com.simats.courtease.data.Store
 import com.simats.courtease.model.CaseStatus
@@ -36,6 +40,7 @@ import com.simats.courtease.ui.components.ScreenHeader
 import com.simats.courtease.ui.components.SectionTitle
 import com.simats.courtease.ui.components.rememberDocPicker
 import com.simats.courtease.ui.theme.CE
+import kotlinx.coroutines.launch
 
 private val CLAIMANT_TYPES = listOf("Plaint", "Vakalatnama", "Evidence", "Annexure", "Other")
 private val RESPONDENT_TYPES = listOf("Written statement", "Evidence", "Annexure", "Other")
@@ -43,17 +48,26 @@ private val RESPONDENT_TYPES = listOf("Written statement", "Evidence", "Annexure
 @Composable
 fun DocumentsScreen(caseId: Int, onBack: () -> Unit) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val me = Session.userId
     val c = Store.state.cases.firstOrNull { it.id == caseId }
     val side = c?.let { CaseOps.sideOf(it, me) }
     var type by remember { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
 
     fun toast(message: String) = Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 
-    val pick = rememberDocPicker { name, pages ->
-        if (c != null) {
-            val chosen = type.ifBlank { if (side == Side.RESPONDENT) RESPONDENT_TYPES.first() else CLAIMANT_TYPES.first() }
-            toast(CaseOps.addDoc(c.id, me, name, chosen, pages) ?: "Added as a draft")
+    val pick = rememberDocPicker { picked ->
+        if (c != null && !busy) {
+            val chosen = type.ifBlank {
+                if (side == Side.RESPONDENT) RESPONDENT_TYPES.first() else CLAIMANT_TYPES.first()
+            }
+            busy = true
+            scope.launch {
+                val r = FileOps.uploadDoc(context, c.id, chosen, picked)
+                busy = false
+                toast(r ?: "Uploaded as a draft")
+            }
         }
     }
 
@@ -74,7 +88,8 @@ fun DocumentsScreen(caseId: Int, onBack: () -> Unit) {
                 Spacer(Modifier.height(12.dp))
                 DropdownField("Type", type.ifBlank { types.first() }, types, { type = it })
                 Spacer(Modifier.height(12.dp))
-                PrimaryButton("Choose PDF or image", { pick() })
+                PrimaryButton(if (busy) "Uploading..." else "Choose PDF, JPG or PNG", { if (!busy) pick() })
+                BodyText("Up to 15 MB.", Modifier.padding(top = 8.dp))
             }
         }
 
@@ -97,15 +112,23 @@ fun DocumentsScreen(caseId: Int, onBack: () -> Unit) {
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 }
+                if (d.hasFile) {
+                    Spacer(Modifier.height(12.dp))
+                    OutlineButton("Open", {
+                        scope.launch { FileOps.open(context, d)?.let { toast(it) } }
+                    }, Modifier.fillMaxWidth())
+                } else {
+                    BodyText("Sample entry with no file attached", Modifier.padding(top = 6.dp))
+                }
                 if (mine && !d.filed) {
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         OutlineButton("Remove", {
-                            toast(CaseOps.removeDoc(d.id, me) ?: "Removed")
+                            scope.launch { toast(CaseRepo.removeDoc(d.id) ?: "Removed") }
                         }, Modifier.weight(1f), color = CE.Red)
                         if (lead) {
                             PrimaryButton("File to court", {
-                                toast(CaseOps.fileDoc(d.id, me) ?: "Filed to the court")
+                                scope.launch { toast(CaseRepo.fileDoc(d.id) ?: "Filed to the court") }
                             }, Modifier.weight(1f))
                         }
                     }

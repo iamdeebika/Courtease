@@ -12,13 +12,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.simats.courtease.data.Session
+import com.simats.courtease.data.CaseRepo
 import com.simats.courtease.data.Store
 import com.simats.courtease.model.CaseFile
 import com.simats.courtease.model.CaseStatus
@@ -34,6 +35,7 @@ import com.simats.courtease.ui.components.RegistryCaseCard
 import com.simats.courtease.ui.components.ScreenHeader
 import com.simats.courtease.ui.components.SectionTitle
 import com.simats.courtease.ui.theme.CE
+import kotlinx.coroutines.launch
 
 @Composable
 fun AllocationScreen(onBack: () -> Unit) {
@@ -91,6 +93,7 @@ fun AllocationScreen(onBack: () -> Unit) {
 
 @Composable
 private fun AllocateDialog(c: CaseFile, onResult: (String) -> Unit, onDismiss: () -> Unit) {
+    val scope = rememberCoroutineScope()
     val judges = Store.approvedJudges()
     val suggestion = Store.suggestJudge(c.court)
     val options = judges.associate {
@@ -130,12 +133,14 @@ private fun AllocateDialog(c: CaseFile, onResult: (String) -> Unit, onDismiss: (
             if (options.isNotEmpty()) {
                 TextButton(onClick = {
                     val judgeId = options[chosen] ?: 0
-                    val result = Store.allocate(c.id, Session.userId, judgeId, reason)
-                    if (result == null) {
-                        val j = Store.user(judgeId)
-                        onResult("Allocated to ${j?.name}, ${j?.courtroom}")
-                    } else {
-                        error = result
+                    scope.launch {
+                        val result = CaseRepo.allocate(c.id, judgeId, reason)
+                        if (result == null) {
+                            val j = Store.user(judgeId)
+                            onResult("Allocated to ${j?.name}, ${j?.courtroom}")
+                        } else {
+                            error = result
+                        }
                     }
                 }) { Text("Allocate", color = CE.Teal) }
             }

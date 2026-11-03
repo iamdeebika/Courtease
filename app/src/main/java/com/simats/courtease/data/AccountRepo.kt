@@ -101,7 +101,7 @@ object AccountRepo {
 
     // ---------- sync ----------
 
-    /** Refreshes the signed-in user, the directory and the alerts. Returns false only if the session is no longer valid. */
+    /** Refreshes the signed-in user, the directory, the cases, the team data and the alerts. Returns false only if the session is no longer valid. */
     suspend fun syncAll(): Boolean {
         val me = when (val r = safeCall { api.me() }) {
             is ApiResult.Ok -> r.data
@@ -116,6 +116,8 @@ object AccountRepo {
                 val mapped = list.data.map { it.toUser() }.map { if (it.id == self.id) self else it }
                 Store.replaceUsers(if (mapped.any { it.id == self.id }) mapped else mapped + self)
             }
+            CaseRepo.sync()
+            TeamRepo.sync()
         }
 
         val notifs = safeCall { api.notifications() }

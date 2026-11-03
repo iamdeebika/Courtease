@@ -13,17 +13,22 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.simats.courtease.data.AccountRepo
+import com.simats.courtease.data.CaseRepo
 import com.simats.courtease.data.Session
 import com.simats.courtease.data.Store
 import com.simats.courtease.model.AccountStatus
@@ -39,8 +44,7 @@ import com.simats.courtease.ui.components.StatCard
 import com.simats.courtease.ui.components.ToolRow
 import com.simats.courtease.ui.components.WarnBanner
 import com.simats.courtease.ui.theme.CE
-import androidx.compose.runtime.LaunchedEffect
-import com.simats.courtease.data.AccountRepo
+import kotlinx.coroutines.launch
 
 @Composable
 fun RegistryDashboardScreen(
@@ -51,10 +55,12 @@ fun RegistryDashboardScreen(
     onAllocation: () -> Unit = {},
     onNotices: () -> Unit = {},
     onAudit: () -> Unit = {},
+    onReports: () -> Unit = {},
     onNotifications: (() -> Unit)? = null,
     onProfile: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val s = Store.state
     val pendingAccounts = s.users.count { it.status == AccountStatus.PENDING }
     val approved = s.users.count { it.status == AccountStatus.APPROVED && it.role != Role.REGISTRY }
@@ -63,6 +69,7 @@ fun RegistryDashboardScreen(
     val toNotice = s.cases.count { it.status == CaseStatus.ALLOCATED }
     val overdue = Store.overdue().size
     var confirmReset by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) { AccountRepo.syncAll() }
 
     CourtScaffold(
@@ -93,10 +100,11 @@ fun RegistryDashboardScreen(
         ToolRow(Icons.Default.Create, "Filing queue", "$filed to scrutinise", onQueue)
         ToolRow(Icons.Default.LocationOn, "Allocation", "$registered awaiting a judge", onAllocation)
         ToolRow(Icons.Default.Email, "Notices", "$toNotice ready", onNotices)
-        ToolRow(Icons.Default.Info, "Audit log", "${s.audit.size} entries", onAudit)
+        ToolRow(Icons.Default.Star, "Reports", "Cases, stages and judge workload", onReports)
+        ToolRow(Icons.Default.Info, "Audit log", "Account and case events", onAudit)
 
         OutlineButton(
-            "Reset demo data", { confirmReset = true },
+            "Reset case data", { confirmReset = true },
             Modifier.fillMaxWidth(), color = CE.Red
         )
     }
@@ -105,12 +113,14 @@ fun RegistryDashboardScreen(
         AlertDialog(
             onDismissRequest = { confirmReset = false },
             title = { Text("Reset case data?") },
-            text = { Text("Cases, documents and orders on this phone return to the starting demo. Accounts stay.") },
+            text = { Text("All cases, documents and orders on the server return to the starting demo. Accounts stay.") },
             confirmButton = {
                 TextButton(onClick = {
                     confirmReset = false
-                    Store.resetCases()
-                    Toast.makeText(context, "Case data reset", Toast.LENGTH_SHORT).show()
+                    scope.launch {
+                        val r = CaseRepo.resetCases()
+                        Toast.makeText(context, r ?: "Case data reset", Toast.LENGTH_SHORT).show()
+                    }
                 }) { Text("Reset", color = CE.Red) }
             },
             dismissButton = { TextButton(onClick = { confirmReset = false }) { Text("Cancel") } }

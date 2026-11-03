@@ -97,6 +97,9 @@ class Document(Base):
     filed: Mapped[bool] = mapped_column(Boolean, default=False)
     uploaded_by: Mapped[int] = mapped_column(Integer)
     pages: Mapped[int] = mapped_column(Integer, default=1)
+    stored_name: Mapped[str] = mapped_column(String(80), default="")
+    size: Mapped[int] = mapped_column(Integer, default=0)
+    mime: Mapped[str] = mapped_column(String(80), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
@@ -120,3 +123,52 @@ class PrivateNote(Base):
     user_id: Mapped[int] = mapped_column(Integer, index=True)
     text: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+# ---------- team workspace (B3) ----------
+
+class CaseInvite(Base):
+    __tablename__ = "case_invites"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    case_id: Mapped[int] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), index=True)
+    side: Mapped[str] = mapped_column(String(12))
+    email: Mapped[str] = mapped_column(String(255), index=True)
+    invited_by: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(12), default="pending")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class TeamMessage(Base):
+    __tablename__ = "team_messages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    case_id: Mapped[int] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), index=True)
+    side: Mapped[str] = mapped_column(String(12))
+    user_id: Mapped[int] = mapped_column(Integer)
+    text: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class TeamNote(Base):
+    __tablename__ = "team_notes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    case_id: Mapped[int] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), index=True)
+    side: Mapped[str] = mapped_column(String(12))
+    user_id: Mapped[int] = mapped_column(Integer)
+    text: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class TeamTask(Base):
+    __tablename__ = "team_tasks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    case_id: Mapped[int] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), index=True)
+    side: Mapped[str] = mapped_column(String(12))
+    creator_id: Mapped[int] = mapped_column(Integer)
+    assignee_id: Mapped[int] = mapped_column(Integer)
+    title: Mapped[str] = mapped_column(String(200))
+    due: Mapped[date] = mapped_column(Date)
+    done: Mapped[bool] = mapped_column(Boolean, default=False)

@@ -16,18 +16,22 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.simats.courtease.data.AccountRepo
 import com.simats.courtease.data.CaseOps
 import com.simats.courtease.data.Session
 import com.simats.courtease.data.Store
+import com.simats.courtease.data.TeamRepo
 import com.simats.courtease.model.Dates
 import com.simats.courtease.model.label
 import com.simats.courtease.ui.components.BarIcon
@@ -43,6 +47,7 @@ import com.simats.courtease.ui.components.SearchField
 import com.simats.courtease.ui.components.SectionTitle
 import com.simats.courtease.ui.components.StatCard
 import com.simats.courtease.ui.theme.CE
+import kotlinx.coroutines.launch
 
 @Composable
 fun LawyerDashboardScreen(
@@ -54,9 +59,13 @@ fun LawyerDashboardScreen(
     onProfile: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val me = Session.userId
     val user = Session.user
     var query by remember { mutableStateOf("") }
+
+    // Pull the latest cases and invitations whenever this screen opens.
+    LaunchedEffect(Unit) { AccountRepo.syncAll() }
 
     val all = CaseOps.casesOf(me)
     val invites = if (user != null) CaseOps.pendingInvites(user) else emptyList()
@@ -111,12 +120,16 @@ fun LawyerDashboardScreen(
                     Spacer(Modifier.height(12.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         OutlineButton("Decline", {
-                            val r = CaseOps.respondInvite(inv.id, me, false)
-                            Toast.makeText(context, r ?: "Invitation declined", Toast.LENGTH_SHORT).show()
+                            scope.launch {
+                                val r = TeamRepo.respondInvite(inv.id, false)
+                                Toast.makeText(context, r ?: "Invitation declined", Toast.LENGTH_SHORT).show()
+                            }
                         }, Modifier.weight(1f))
                         PrimaryButton("Accept", {
-                            val r = CaseOps.respondInvite(inv.id, me, true)
-                            Toast.makeText(context, r ?: "You joined the team", Toast.LENGTH_SHORT).show()
+                            scope.launch {
+                                val r = TeamRepo.respondInvite(inv.id, true)
+                                Toast.makeText(context, r ?: "You joined the team", Toast.LENGTH_SHORT).show()
+                            }
                         }, Modifier.weight(1f))
                     }
                 }

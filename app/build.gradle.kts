@@ -60,4 +60,5 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
     implementation("androidx.compose.material:material-icons-core")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }

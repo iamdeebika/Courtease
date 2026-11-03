@@ -253,6 +253,8 @@ class DocOut(BaseModel):
     filed: bool
     uploaded_by: int
     pages: int
+    has_file: bool = False
+    size: int = 0
     created_at: int
 
 

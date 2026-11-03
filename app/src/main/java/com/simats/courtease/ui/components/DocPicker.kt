@@ -8,6 +8,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import com.simats.courtease.data.PickedDoc
 
 private fun displayName(context: Context, uri: Uri): String {
     context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
@@ -30,12 +31,12 @@ private fun countPages(context: Context, uri: Uri): Int = try {
     1
 }
 
-// Returns a function that opens the phone's file picker. The callback gets the file name and page count.
+// Returns a function that opens the phone's file picker. The callback gets the chosen file.
 @Composable
-fun rememberDocPicker(onPicked: (name: String, pages: Int) -> Unit): () -> Unit {
+fun rememberDocPicker(onPicked: (PickedDoc) -> Unit): () -> Unit {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
-        if (uri != null) onPicked(displayName(context, uri), countPages(context, uri))
+        if (uri != null) onPicked(PickedDoc(uri, displayName(context, uri), countPages(context, uri)))
     }
-    return { launcher.launch(arrayOf("application/pdf", "image/*")) }
+    return { launcher.launch(arrayOf("application/pdf", "image/jpeg", "image/png")) }
 }

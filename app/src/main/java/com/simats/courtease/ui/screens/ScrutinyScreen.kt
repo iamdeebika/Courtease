@@ -15,13 +15,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.simats.courtease.data.Session
+import com.simats.courtease.data.CaseRepo
 import com.simats.courtease.data.Store
 import com.simats.courtease.model.CaseStatus
 import com.simats.courtease.model.Dates
@@ -39,6 +40,7 @@ import com.simats.courtease.ui.components.ScreenHeader
 import com.simats.courtease.ui.components.SectionTitle
 import com.simats.courtease.ui.components.WarnBanner
 import com.simats.courtease.ui.theme.CE
+import kotlinx.coroutines.launch
 
 @Composable
 private fun Fact(label: String, value: String) {
@@ -51,6 +53,7 @@ private fun Fact(label: String, value: String) {
 @Composable
 fun ScrutinyScreen(caseId: Int, onBack: () -> Unit) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val c = Store.state.cases.firstOrNull { it.id == caseId }
     var returning by remember { mutableStateOf(false) }
 
@@ -112,14 +115,16 @@ fun ScrutinyScreen(caseId: Int, onBack: () -> Unit) {
             CaseStatus.FILED -> {
                 if (allPass) {
                     PrimaryButton("Register case", {
-                        val result = Store.registerCase(c.id, Session.userId)
-                        if (result == null) {
-                            Toast.makeText(
-                                context, "Registered as ${Store.caseById(c.id)?.caseNo}", Toast.LENGTH_LONG
-                            ).show()
-                            onBack()
-                        } else {
-                            Toast.makeText(context, result, Toast.LENGTH_LONG).show()
+                        scope.launch {
+                            val result = CaseRepo.registerCase(c.id)
+                            if (result == null) {
+                                Toast.makeText(
+                                    context, "Registered as ${Store.caseById(c.id)?.caseNo}", Toast.LENGTH_LONG
+                                ).show()
+                                onBack()
+                            } else {
+                                Toast.makeText(context, result, Toast.LENGTH_LONG).show()
+                            }
                         }
                     })
                 } else {
@@ -157,13 +162,15 @@ fun ScrutinyScreen(caseId: Int, onBack: () -> Unit) {
             },
             confirmButton = {
                 TextButton(onClick = {
-                    val result = Store.returnCase(c.id, Session.userId, note)
-                    if (result == null) {
-                        returning = false
-                        Toast.makeText(context, "Case returned to the lawyer", Toast.LENGTH_SHORT).show()
-                        onBack()
-                    } else {
-                        error = result
+                    scope.launch {
+                        val result = CaseRepo.returnCase(c.id, note)
+                        if (result == null) {
+                            returning = false
+                            Toast.makeText(context, "Case returned to the lawyer", Toast.LENGTH_SHORT).show()
+                            onBack()
+                        } else {
+                            error = result
+                        }
                     }
                 }) { Text("Return", color = CE.Red) }
             },

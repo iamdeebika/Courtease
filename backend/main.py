@@ -1,5 +1,7 @@
 import re
+import os
 import secrets
+import sys
 import time
 from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional
@@ -21,6 +23,8 @@ from schemas import (
     ProfileIn, ReasonIn, ResetPasswordIn, ReturnIn, SignupIn, SyncOut, TokenOut, UserOut,
 )
 from security import create_token, decode_token, hash_secret, verify_secret
+from b3 import UPLOAD_DIR, install_b3
+from b4 import install_b4
 
 Base.metadata.create_all(bind=engine)
 
@@ -447,7 +451,8 @@ def one_out(db: Session, c: Case, viewer: User) -> CaseOut:
 def doc_out(d: Document) -> DocOut:
     return DocOut(
         id=d.id, case_id=d.case_id, name=d.name, doc_type=d.doc_type, side=d.side,
-        filed=d.filed, uploaded_by=d.uploaded_by, pages=d.pages, created_at=millis(d.created_at),
+        filed=d.filed, uploaded_by=d.uploaded_by, pages=d.pages,
+        has_file=bool(d.stored_name), size=d.size, created_at=millis(d.created_at),
     )
 
 
@@ -712,8 +717,14 @@ def remove_doc(did: int, user: User = Depends(lawyer_user), db: Session = Depend
     if d.uploaded_by != user.id:
         raise HTTPException(status_code=403, detail="Only the uploader can remove this draft")
     audit(db, user.id, "Removed draft document", d.name)
+    stored = d.stored_name
     db.delete(d)
     db.commit()
+    if stored:
+        try:
+            os.remove(os.path.join(UPLOAD_DIR, stored))
+        except OSError:
+            pass
     return MessageOut(message="Removed")
 
 
@@ -949,3 +960,7 @@ def delete_note(nid: int, judge: User = Depends(judge_user), db: Session = Depen
     db.delete(n)
     db.commit()
     return MessageOut(message="Deleted")
+
+
+install_b3(app, sys.modules[__name__])
+install_b4(app, sys.modules[__name__])

@@ -1,6 +1,7 @@
 package com.simats.courtease.data.api
 
 import com.google.gson.JsonParser
+import com.simats.courtease.data.Session
 import kotlinx.coroutines.CancellationException
 import retrofit2.Response
 import java.io.IOException
@@ -13,6 +14,8 @@ sealed class ApiResult<out T> {
 suspend fun <T> safeCall(block: suspend () -> Response<T>): ApiResult<T> = try {
     val response = block()
     val body = response.body()
+    // A 401 while signed in means the login has expired. The app then signs the user out.
+    if (response.code() == 401) Session.markExpired()
     when {
         response.isSuccessful && body != null -> ApiResult.Ok(body)
         response.isSuccessful -> ApiResult.Err("Empty response", response.code())

@@ -32,6 +32,7 @@ import com.simats.courtease.ui.screens.NoticesScreen
 import com.simats.courtease.ui.screens.NotificationsScreen
 import com.simats.courtease.ui.screens.ProfileScreen
 import com.simats.courtease.ui.screens.RegistryDashboardScreen
+import com.simats.courtease.ui.screens.ReportScreen
 import com.simats.courtease.ui.screens.ScrutinyScreen
 import com.simats.courtease.ui.screens.SignupScreen
 import com.simats.courtease.ui.screens.SplashScreen
@@ -55,6 +56,7 @@ object Routes {
     const val ALLOCATION = "allocation"
     const val NOTICES = "notices"
     const val AUDIT = "audit"
+    const val REPORT = "report"
 
     const val LAWYER = "lawyer"
     const val LCASE = "lcase"
@@ -86,6 +88,7 @@ fun AppNavigation() {
     val back: () -> Unit = { nav.popBackStack() }
     val signOut: () -> Unit = {
         Session.logout(context)
+        Store.clearForSignOut()
         nav.navigate(Routes.LOGIN) { popUpTo(0) }
     }
     val openAlerts: () -> Unit = { nav.navigate(Routes.ALERTS) }
@@ -102,7 +105,6 @@ fun AppNavigation() {
         composable(Routes.LOGIN) {
             LoginScreen(
                 onLoggedIn = { user ->
-                    Session.login(context, user.id)
                     nav.navigate(homeRoute(user)) { popUpTo(Routes.LOGIN) { inclusive = true } }
                 },
                 onSignup = { nav.navigate(Routes.SIGNUP) },
@@ -154,6 +156,8 @@ fun AppNavigation() {
                 onAllocation = { nav.navigate(Routes.ALLOCATION) },
                 onNotices = { nav.navigate(Routes.NOTICES) },
                 onAudit = { nav.navigate(Routes.AUDIT) },
+                onReports = { nav.navigate(Routes.REPORT) },
+
                 onNotifications = openAlerts,
                 onProfile = openProfile
             )
@@ -169,6 +173,8 @@ fun AppNavigation() {
         composable(Routes.ALLOCATION) { AllocationScreen(onBack = back) }
         composable(Routes.NOTICES) { NoticesScreen(onBack = back) }
         composable(Routes.AUDIT) { AuditLogScreen(onBack = back) }
+        composable(Routes.REPORT) { ReportScreen(onBack = back) }
+        composable(Routes.REPORT) { ReportScreen(onBack = back) }
 
         // ---------- lawyer ----------
         composable(Routes.LAWYER) {

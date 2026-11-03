@@ -55,11 +55,11 @@ data class User(
     val password: String,
     val role: Role,
     val status: AccountStatus,
-    val regNo: String = "",          // bar enrolment number (lawyer) or employee ID (judge)
-    val council: String = "",        // state bar council (lawyer) or court of posting (judge)
-    val registryId: String = "",     // ADV-2026-0001, JDG-2026-0001
-    val court: String = "",          // judges only, set at approval
-    val courtroom: String = "",      // judges only, set at approval
+    val regNo: String = "",
+    val council: String = "",
+    val registryId: String = "",
+    val court: String = "",
+    val courtroom: String = "",
     val rejectReason: String = "",
     val createdAt: Long = 0L
 )
@@ -72,7 +72,7 @@ data class CaseFile(
     val claimant: String,
     val respondent: String,
     val status: CaseStatus,
-    val claimantTeam: List<Int> = emptyList(),   // first id is the lead advocate
+    val claimantTeam: List<Int> = emptyList(),
     val respondentTeam: List<Int> = emptyList(),
     val caseNo: String = "",
     val feeAmount: String = "",
@@ -97,19 +97,20 @@ data class Doc(
     val id: Int,
     val caseId: Int,
     val name: String,
-    val type: String,          // Plaint, Vakalatnama, Written statement, Evidence
+    val type: String,
     val side: Side,
     val filed: Boolean,
     val uploadedBy: Int,
     val pages: Int,
-    val at: Long
+    val at: Long,
+    val hasFile: Boolean = false
 )
 
 data class Order(
     val id: Int,
     val caseId: Int,
     val judgeId: Int,
-    val kind: String,          // Direction, Interim order, Judgment
+    val kind: String,
     val title: String,
     val body: String,
     val at: Long
@@ -135,7 +136,7 @@ data class Invite(
     val side: Side,
     val email: String,
     val invitedBy: Int,
-    val status: String = "pending"   // pending, accepted, declined
+    val status: String = "pending"
 )
 
 data class PrivateNote(val id: Int, val caseId: Int, val userId: Int, val text: String, val at: Long)

@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,7 +28,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.simats.courtease.data.CaseOps
+import com.simats.courtease.data.CaseRepo
+import com.simats.courtease.data.FileOps
 import com.simats.courtease.data.JudgeOps
 import com.simats.courtease.data.Session
 import com.simats.courtease.data.Store
@@ -54,10 +56,12 @@ import com.simats.courtease.ui.components.ScreenHeader
 import com.simats.courtease.ui.components.SectionTitle
 import com.simats.courtease.ui.components.WarnBanner
 import com.simats.courtease.ui.theme.CE
+import kotlinx.coroutines.launch
 
 @Composable
 fun BenchCaseScreen(caseId: Int, onBack: () -> Unit, onRecused: () -> Unit) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val me = Session.userId
     val c = Store.state.cases.firstOrNull { it.id == caseId }
     var ordering by remember { mutableStateOf(false) }
@@ -96,12 +100,9 @@ fun BenchCaseScreen(caseId: Int, onBack: () -> Unit, onRecused: () -> Unit) {
                 CaseStatusPill(c.status)
             }
             Text("${c.caseType.substringAfter("· ")} | ${c.court}", color = Color.White, fontSize = 16.sp)
-            Text("${c.courtroom}", color = AuthGold, fontSize = 16.sp)
+            Text(c.courtroom, color = AuthGold, fontSize = 16.sp)
             Text("${c.claimant}  vs  ${c.respondent}", color = Color.White, fontSize = 18.sp)
-            Text(
-                "For the claimant: ${claimantLead?.name ?: "-"}",
-                color = Color(0xFFB4C4D2), fontSize = 15.sp
-            )
+            Text("For the claimant: ${claimantLead?.name ?: "-"}", color = Color(0xFFB4C4D2), fontSize = 15.sp)
             Text(
                 "For the respondent: ${respondentLead?.name ?: "not yet appeared"}",
                 color = Color(0xFFB4C4D2), fontSize = 15.sp
@@ -116,7 +117,7 @@ fun BenchCaseScreen(caseId: Int, onBack: () -> Unit, onRecused: () -> Unit) {
         CaseProgressCard(c.status)
 
         if (canReview) PrimaryButton("Start review", {
-            toast(JudgeOps.startReview(c.id, me) ?: "Review started")
+            scope.launch { toast(CaseRepo.startReview(c.id) ?: "Review started") }
         })
         if (canOrder) PrimaryButton("Issue order or direction", { ordering = true })
         if (c.status == CaseStatus.JUDGMENT) {
@@ -158,6 +159,24 @@ fun BenchCaseScreen(caseId: Int, onBack: () -> Unit, onRecused: () -> Unit) {
                         Pill(if (d.side == Side.CLAIMANT) "Claimant" else "Respondent", CE.Chip, CE.Navy)
                     }
                     BodyText("${d.type} · ${d.pages} page(s) · ${Dates.stamp(d.at)}", Modifier.padding(top = 4.dp))
+                    if (d.hasFile) {
+                        Spacer(Modifier.height(10.dp))
+                        OutlineButton("Open", {
+                            scope.launch {
+                                toast("Opening ${d.name}...")
+                                val problem = try {
+                                    FileOps.open(context, d)
+                                } catch (e: Exception) {
+                                    "Couldn't open: ${e.javaClass.simpleName} ${e.message}"
+                                }
+                                if (problem != null) {
+                                    Toast.makeText(context, problem, Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        }, Modifier.fillMaxWidth())
+                    } else {
+                        BodyText("Sample entry with no file attached", Modifier.padding(top = 6.dp))
+                    }
                 }
             }
         }
@@ -167,8 +186,10 @@ fun BenchCaseScreen(caseId: Int, onBack: () -> Unit, onRecused: () -> Unit) {
             CourtField("New note (only you can see this)", noteText, { noteText = it })
             Spacer(Modifier.height(12.dp))
             PrimaryButton("Save note", {
-                val r = JudgeOps.addNote(c.id, me, noteText)
-                if (r == null) noteText = "" else toast(r)
+                scope.launch {
+                    val r = CaseRepo.addNote(c.id, noteText)
+                    if (r == null) noteText = "" else toast(r)
+                }
             })
         }
         notes.forEach { n ->
@@ -176,9 +197,9 @@ fun BenchCaseScreen(caseId: Int, onBack: () -> Unit, onRecused: () -> Unit) {
                 Text(n.text, color = CE.Navy, fontSize = 16.sp)
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
                     BodyText(Dates.stamp(n.at), Modifier.weight(1f))
-                    TextButton(onClick = { toast(JudgeOps.deleteNote(n.id, me) ?: "Note deleted") }) {
-                        Text("Delete", color = CE.Red)
-                    }
+                    TextButton(onClick = {
+                        scope.launch { toast(CaseRepo.deleteNote(n.id) ?: "Note deleted") }
+                    }) { Text("Delete", color = CE.Red) }
                 }
             }
         }
@@ -202,7 +223,7 @@ fun BenchCaseScreen(caseId: Int, onBack: () -> Unit, onRecused: () -> Unit) {
             field = "Reason for closing",
             action = "Close case",
             danger = false,
-            submit = { reason -> JudgeOps.closeCase(c.id, me, reason) },
+            submit = { reason -> CaseRepo.closeCase(c.id, reason) },
             onDone = {
                 closing = false
                 toast("Case closed")
@@ -218,7 +239,7 @@ fun BenchCaseScreen(caseId: Int, onBack: () -> Unit, onRecused: () -> Unit) {
             field = "Reason (for example, a conflict of interest)",
             action = "Step aside",
             danger = true,
-            submit = { reason -> JudgeOps.recuse(c.id, me, reason) },
+            submit = { reason -> CaseRepo.recuse(c.id, reason) },
             onDone = {
                 recusing = false
                 toast("The registry will allocate a new judge")
@@ -231,7 +252,7 @@ fun BenchCaseScreen(caseId: Int, onBack: () -> Unit, onRecused: () -> Unit) {
 
 @Composable
 private fun OrderDialog(c: CaseFile, onResult: (String) -> Unit, onDismiss: () -> Unit) {
-    val me = Session.userId
+    val scope = rememberCoroutineScope()
     val kinds = if (c.status == CaseStatus.REVIEW) {
         listOf("Direction", "Interim order", "Judgment")
     } else {
@@ -240,6 +261,7 @@ private fun OrderDialog(c: CaseFile, onResult: (String) -> Unit, onDismiss: () -
     var kind by remember { mutableStateOf(kinds.first()) }
     var title by remember { mutableStateOf("") }
     var body by remember { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(
@@ -259,9 +281,14 @@ private fun OrderDialog(c: CaseFile, onResult: (String) -> Unit, onDismiss: () -
         },
         confirmButton = {
             TextButton(onClick = {
-                val r = JudgeOps.issueOrder(c.id, me, kind, title, body)
-                if (r == null) onResult("$kind issued") else error = r
-            }) { Text("Issue", color = CE.Teal) }
+                if (busy) return@TextButton
+                busy = true
+                scope.launch {
+                    val r = CaseRepo.issueOrder(c.id, kind, title, body)
+                    busy = false
+                    if (r == null) onResult("$kind issued") else error = r
+                }
+            }) { Text(if (busy) "Issuing..." else "Issue", color = CE.Teal) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
@@ -274,11 +301,13 @@ private fun ReasonDialog(
     field: String,
     action: String,
     danger: Boolean,
-    submit: (String) -> String?,
+    submit: suspend (String) -> String?,
     onDone: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val scope = rememberCoroutineScope()
     var reason by remember { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -292,9 +321,14 @@ private fun ReasonDialog(
         },
         confirmButton = {
             TextButton(onClick = {
-                val r = submit(reason)
-                if (r == null) onDone() else error = r
-            }) { Text(action, color = if (danger) CE.Red else CE.Teal) }
+                if (busy) return@TextButton
+                busy = true
+                scope.launch {
+                    val r = submit(reason)
+                    busy = false
+                    if (r == null) onDone() else error = r
+                }
+            }) { Text(if (busy) "Working..." else action, color = if (danger) CE.Red else CE.Teal) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )

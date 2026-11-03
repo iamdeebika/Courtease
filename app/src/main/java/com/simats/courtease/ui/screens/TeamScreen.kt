@@ -22,10 +22,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.simats.courtease.data.CaseOps
 import com.simats.courtease.data.Session
 import com.simats.courtease.data.Store
+import com.simats.courtease.data.TeamRepo
 import com.simats.courtease.model.Dates
 import com.simats.courtease.model.Side
 import com.simats.courtease.model.label
@@ -55,11 +58,14 @@ import com.simats.courtease.ui.components.PrimaryButton
 import com.simats.courtease.ui.components.ScreenHeader
 import com.simats.courtease.ui.components.SectionTitle
 import com.simats.courtease.ui.theme.CE
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TeamScreen(caseId: Int, onBack: () -> Unit) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val me = Session.userId
     val c = Store.state.cases.firstOrNull { it.id == caseId }
     val side = c?.let { CaseOps.sideOf(it, me) }
@@ -74,6 +80,14 @@ fun TeamScreen(caseId: Int, onBack: () -> Unit) {
     var showPicker by remember { mutableStateOf(false) }
 
     fun toast(message: String) = Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+
+    // New chat messages from teammates appear within a few seconds while this screen is open.
+    LaunchedEffect(caseId) {
+        while (true) {
+            TeamRepo.sync()
+            delay(4000)
+        }
+    }
 
     CourtScaffold(onBack = onBack) {
         if (c == null || side == null) {
@@ -113,8 +127,8 @@ fun TeamScreen(caseId: Int, onBack: () -> Unit) {
                     .filter { it.caseId == c.id && it.side == side }
                     .sortedBy { it.at }
                 if (messages.isEmpty()) EmptyCard("No messages yet", "Start the conversation with your team.")
-                messages.forEach { m ->
-                    val mine = m.userId == me
+                messages.forEach { msg ->
+                    val mine = msg.userId == me
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = if (mine) Arrangement.End else Arrangement.Start
@@ -125,13 +139,13 @@ fun TeamScreen(caseId: Int, onBack: () -> Unit) {
                         ) {
                             if (!mine) {
                                 Text(
-                                    Store.user(m.userId)?.name.orEmpty(), color = CE.Teal,
+                                    Store.user(msg.userId)?.name.orEmpty(), color = CE.Teal,
                                     fontSize = 13.sp, fontWeight = FontWeight.SemiBold
                                 )
                             }
-                            Text(m.text, color = if (mine) Color.White else CE.Navy, fontSize = 16.sp)
+                            Text(msg.text, color = if (mine) Color.White else CE.Navy, fontSize = 16.sp)
                             Text(
-                                Dates.stamp(m.at), fontSize = 11.sp,
+                                Dates.stamp(msg.at), fontSize = 11.sp,
                                 color = if (mine) Color(0xFFCFE3E1) else CE.Muted
                             )
                         }
@@ -141,8 +155,11 @@ fun TeamScreen(caseId: Int, onBack: () -> Unit) {
                     "Message", draft, { draft = it },
                     trailing = {
                         TextButton(onClick = {
-                            val r = CaseOps.sendMessage(c.id, me, draft)
-                            if (r == null) draft = "" else toast(r)
+                            val text = draft
+                            scope.launch {
+                                val r = TeamRepo.sendMessage(c.id, text)
+                                if (r == null) draft = "" else toast(r)
+                            }
                         }) { Text("Send", color = CE.Teal, fontWeight = FontWeight.Bold) }
                     }
                 )
@@ -154,8 +171,10 @@ fun TeamScreen(caseId: Int, onBack: () -> Unit) {
                     CourtField("New note", noteText, { noteText = it })
                     Spacer(Modifier.height(12.dp))
                     PrimaryButton("Add note", {
-                        val r = CaseOps.addNote(c.id, me, noteText)
-                        if (r == null) noteText = "" else toast(r)
+                        scope.launch {
+                            val r = TeamRepo.addNote(c.id, noteText)
+                            if (r == null) noteText = "" else toast(r)
+                        }
                     })
                 }
                 val notes = Store.state.notes
@@ -189,13 +208,15 @@ fun TeamScreen(caseId: Int, onBack: () -> Unit) {
                     Spacer(Modifier.height(12.dp))
                     PrimaryButton("Add task", {
                         val assignee = byName[taskAssignee.ifBlank { members.firstOrNull()?.name.orEmpty() }] ?: 0
-                        val r = CaseOps.addTask(c.id, me, assignee, taskTitle, taskDue)
-                        if (r == null) {
-                            taskTitle = ""
-                            taskDue = ""
-                            toast("Task added")
-                        } else {
-                            toast(r)
+                        scope.launch {
+                            val r = TeamRepo.addTask(c.id, assignee, taskTitle, taskDue)
+                            if (r == null) {
+                                taskTitle = ""
+                                taskDue = ""
+                                toast("Task added")
+                            } else {
+                                toast(r)
+                            }
                         }
                     })
                 }
@@ -206,8 +227,10 @@ fun TeamScreen(caseId: Int, onBack: () -> Unit) {
                 if (tasks.isEmpty()) EmptyCard("No tasks yet", "Assign work to your team above.")
                 tasks.forEach { t ->
                     CourtCard(onClick = {
-                        val r = CaseOps.toggleTask(t.id, me)
-                        if (r != null) toast(r)
+                        scope.launch {
+                            val r = TeamRepo.toggleTask(t.id)
+                            if (r != null) toast(r)
+                        }
                     }) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(
@@ -252,12 +275,14 @@ fun TeamScreen(caseId: Int, onBack: () -> Unit) {
                         CourtField("Email", email, { email = it })
                         Spacer(Modifier.height(12.dp))
                         PrimaryButton("Send invitation", {
-                            val r = CaseOps.invite(c.id, me, email)
-                            if (r == null) {
-                                email = ""
-                                toast("Invitation sent")
-                            } else {
-                                toast(r)
+                            scope.launch {
+                                val r = TeamRepo.invite(c.id, email)
+                                if (r == null) {
+                                    email = ""
+                                    toast("Invitation sent")
+                                } else {
+                                    toast(r)
+                                }
                             }
                         })
                     }

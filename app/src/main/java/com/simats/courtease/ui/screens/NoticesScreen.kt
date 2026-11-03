@@ -1,11 +1,12 @@
 package com.simats.courtease.ui.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.foundation.layout.fillMaxWidth
-import com.simats.courtease.data.Session
+import com.simats.courtease.data.CaseRepo
 import com.simats.courtease.data.Store
 import com.simats.courtease.model.CaseStatus
 import com.simats.courtease.model.Dates
@@ -16,10 +17,12 @@ import com.simats.courtease.ui.components.PrimaryButton
 import com.simats.courtease.ui.components.RegistryCaseCard
 import com.simats.courtease.ui.components.ScreenHeader
 import com.simats.courtease.ui.components.SectionTitle
+import kotlinx.coroutines.launch
 
 @Composable
 fun NoticesScreen(onBack: () -> Unit) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val cases = Store.state.cases
     val ready = cases.filter { it.status == CaseStatus.ALLOCATED }
     val issued = cases.filter { it.caseCode.isNotBlank() }.sortedByDescending { it.id }
@@ -38,11 +41,11 @@ fun NoticesScreen(onBack: () -> Unit) {
                 detail = "Before ${judge?.name.orEmpty()} · ${c.courtroom}",
                 actions = {
                     PrimaryButton("Issue notice", {
-                        val result = Store.issueNotice(c.id, Session.userId)
-                        if (result == null) {
-                            val code = Store.caseById(c.id)?.caseCode
-                            toast("Notice issued · code $code")
-                        } else toast(result)
+                        scope.launch {
+                            val result = CaseRepo.issueNotice(c.id)
+                            if (result == null) toast("Notice issued · code ${Store.caseById(c.id)?.caseCode}")
+                            else toast(result)
+                        }
                     })
                 }
             )
@@ -63,8 +66,10 @@ fun NoticesScreen(onBack: () -> Unit) {
                 detail = "Code ${c.caseCode} · due ${c.responseDue} · $state",
                 actions = if (!appeared) ({
                     OutlineButton("Reissue code", {
-                        val result = Store.reissueCode(c.id, Session.userId)
-                        if (result == null) toast("New code ${Store.caseById(c.id)?.caseCode}") else toast(result)
+                        scope.launch {
+                            val result = CaseRepo.reissueCode(c.id)
+                            if (result == null) toast("New code ${Store.caseById(c.id)?.caseCode}") else toast(result)
+                        }
                     }, Modifier.fillMaxWidth())
                 }) else null
             )

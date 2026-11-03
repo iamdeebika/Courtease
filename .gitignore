@@ -1,6 +1,8 @@
+# Android Studio and Gradle
 *.iml
-.gradle
+.gradle/
 /local.properties
+local.properties
 /.idea/caches
 /.idea/libraries
 /.idea/modules.xml
@@ -8,13 +10,23 @@
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 .DS_Store
-/build
+build/
 /captures
 .externalNativeBuild
 .cxx
-local.properties
+
+# Signing keys and secrets (never commit these)
+*.jks
+*.keystore
+secrets.properties
+.env
 backend/.env
+
+# Python backend
 backend/venv/
 venv/
 __pycache__/
 *.pyc
+
+# Uploaded case documents stay on the server only
+backend/uploads/

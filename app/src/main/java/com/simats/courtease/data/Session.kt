@@ -15,6 +15,10 @@ object Session {
     var token: String? = null
         private set
 
+    // Becomes true when the server says the login has expired.
+    var expired by mutableStateOf(false)
+        private set
+
     val user: User? get() = Store.user(userId)
     val isLoggedIn: Boolean get() = userId != 0 && token != null && user != null
     val role: Role get() = user?.role ?: Role.LAWYER
@@ -29,9 +33,14 @@ object Session {
     private fun prefs(context: Context) =
         context.applicationContext.getSharedPreferences("courtease_session", Context.MODE_PRIVATE)
 
+    fun markExpired() {
+        if (token != null) expired = true
+    }
+
     // The token is set when you sign in. Calling this again without a token keeps the current one.
     fun login(context: Context, id: Int, newToken: String? = null) {
         userId = id
+        expired = false
         if (newToken != null) token = newToken
         prefs(context).edit().putInt("user_id", id).putString("token", token).apply()
     }
@@ -40,11 +49,13 @@ object Session {
         val p = prefs(context)
         token = p.getString("token", null)
         userId = if (token != null) p.getInt("user_id", 0) else 0
+        expired = false
     }
 
     fun logout(context: Context) {
         userId = 0
         token = null
+        expired = false
         prefs(context).edit().clear().apply()
     }
 }
