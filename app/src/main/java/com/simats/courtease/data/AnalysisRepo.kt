@@ -3,6 +3,7 @@ package com.simats.courtease.data
 import com.simats.courtease.data.api.AnalysisClient
 import com.simats.courtease.data.api.ApiResult
 import com.simats.courtease.data.api.DocPagesDto
+import com.simats.courtease.data.api.FlagsDto
 import com.simats.courtease.data.api.IssuesDto
 import com.simats.courtease.data.api.ReadingDto
 import com.simats.courtease.data.api.TimelineDto
@@ -22,4 +23,6 @@ object AnalysisRepo {
     suspend fun timeline(caseId: Int): ApiResult<TimelineDto> = safeCall { api.timeline(caseId) }
 
     suspend fun issues(caseId: Int): ApiResult<IssuesDto> = safeCall { api.issues(caseId) }
+
+    suspend fun flags(caseId: Int): ApiResult<FlagsDto> = safeCall { api.flags(caseId) }
 }

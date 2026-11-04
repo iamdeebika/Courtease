@@ -29,6 +29,7 @@ from law import install_law
 from reader import install_reader
 from timeline import install_timeline
 from issues import install_issues
+from flags import install_flags
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="CourtEase API", version="4.0")
@@ -971,3 +972,4 @@ install_law(app, sys.modules[__name__])
 install_reader(app, sys.modules[__name__])
 install_timeline(app, sys.modules[__name__])
 install_issues(app, sys.modules[__name__])
+install_flags(app, sys.modules[__name__])

@@ -1,7 +1,9 @@
 package com.simats.courtease.ui.screens
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -23,23 +25,29 @@ fun AnalysisScreen(caseId: Int, onBack: () -> Unit) {
     val subtitle = when (tab) {
         0 -> "Step 1: read the documents"
         1 -> "Step 2: dated events"
-        else -> "Step 3: issues and evidence"
+        2 -> "Step 3: issues and evidence"
+        else -> "Step 4: points to verify"
     }
 
     CourtScaffold(onBack = onBack) {
         ScreenHeader("ANALYSIS", caseLabel, subtitle)
         InfoBanner("Automated assistance. Everything runs on the CourtEase server, and no text is sent to another company. Check every item against the source page.")
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            Modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             ChoiceChip("Documents", tab == 0) { tab = 0 }
             ChoiceChip("Timeline", tab == 1) { tab = 1 }
             ChoiceChip("Issues", tab == 2) { tab = 2 }
+            ChoiceChip("Verify", tab == 3) { tab = 3 }
         }
 
         when (tab) {
             0 -> ReadingSection(caseId)
             1 -> TimelineSection(caseId)
-            else -> IssuesSection(caseId)
+            2 -> IssuesSection(caseId)
+            else -> FlagsSection(caseId)
         }
     }
 }

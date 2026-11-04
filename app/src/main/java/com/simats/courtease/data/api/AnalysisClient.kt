@@ -26,6 +26,9 @@ interface AnalysisService {
 
     @GET("cases/{id}/issues")
     suspend fun issues(@Path("id") id: Int): Response<IssuesDto>
+
+    @GET("cases/{id}/flags")
+    suspend fun flags(@Path("id") id: Int): Response<FlagsDto>
 }
 
 object AnalysisClient {
