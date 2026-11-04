@@ -15,6 +15,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -32,6 +33,7 @@ import com.simats.courtease.data.api.ReadItemDto
 import com.simats.courtease.data.api.ReadingDto
 import com.simats.courtease.model.label
 import com.simats.courtease.ui.components.BodyText
+import com.simats.courtease.ui.components.ChoiceChip
 import com.simats.courtease.ui.components.CourtCard
 import com.simats.courtease.ui.components.CourtScaffold
 import com.simats.courtease.ui.components.EmptyCard
@@ -67,6 +69,7 @@ private fun methodLabel(method: String): String = when (method) {
 @Composable
 fun AnalysisScreen(caseId: Int, onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
+    var tab by remember { mutableIntStateOf(0) }
     var data by remember { mutableStateOf<ReadingDto?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var starting by remember { mutableStateOf(false) }
@@ -97,7 +100,8 @@ fun AnalysisScreen(caseId: Int, onBack: () -> Unit) {
         }
     }
 
-    LaunchedEffect(caseId) {
+    LaunchedEffect(caseId, tab) {
+        if (tab != 0) return@LaunchedEffect
         while (true) {
             load()
             delay(if (data?.busy == true) 2000 else 8000)
@@ -105,42 +109,53 @@ fun AnalysisScreen(caseId: Int, onBack: () -> Unit) {
     }
 
     val caseLabel: String = Store.caseById(caseId)?.label ?: "Case"
+    val subtitle = if (tab == 0) "Step 1: read the documents" else "Step 2: dated events"
 
     CourtScaffold(onBack = onBack) {
-        ScreenHeader("ANALYSIS", caseLabel, "Step 1: read the documents")
-        InfoBanner("Automated assistance. Reading happens on the CourtEase server, and no text is sent to another company. Check every item against the source page.")
-        error?.let { Text(it, color = CE.Red, fontSize = 15.sp) }
+        ScreenHeader("ANALYSIS", caseLabel, subtitle)
+        InfoBanner("Automated assistance. Everything runs on the CourtEase server, and no text is sent to another company. Check every item against the source page.")
 
-        val d = data
-        if (d != null && !d.ocrReady) {
-            WarnBanner("OCR is not installed", "Typed PDFs can be read. Scanned pages need Tesseract on the server.")
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ChoiceChip("Documents", tab == 0) { tab = 0 }
+            ChoiceChip("Timeline", tab == 1) { tab = 1 }
         }
 
-        PrimaryButton(if (starting || d?.busy == true) "Reading..." else "Read new documents", { start(false) })
-        OutlineButton("Read all again", { start(true) }, Modifier.fillMaxWidth())
+        if (tab == 1) {
+            TimelineSection(caseId)
+        } else {
+            error?.let { Text(it, color = CE.Red, fontSize = 15.sp) }
 
-        if (d == null) {
-            if (error == null) EmptyCard("Loading", "Checking the documents.")
-        } else if (d.items.isEmpty()) {
-            EmptyCard("No documents", "Upload documents to this case first.")
-        }
+            val d = data
+            if (d != null && !d.ocrReady) {
+                WarnBanner("OCR is not installed", "Typed PDFs can be read. Scanned pages need Tesseract on the server.")
+            }
 
-        d?.items?.forEach { i ->
-            CourtCard {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(i.name, color = CE.Navy, fontSize = 17.sp, modifier = Modifier.weight(1f))
-                    if (i.filed) Pill("Filed") else Pill("Draft", CE.Chip, CE.Muted)
-                }
-                BodyText("${i.docType} · ${i.side}", Modifier.padding(top = 4.dp))
-                Text(
-                    statusLine(i), fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
-                    color = if (i.status == "failed") CE.Red else CE.Teal,
-                    modifier = Modifier.padding(top = 6.dp)
-                )
-                if (i.status == "done" && i.message.isNotBlank()) BodyText(i.message, Modifier.padding(top = 4.dp))
-                if (i.status == "done" && (i.pagesText + i.pagesOcr) > 0) {
-                    Spacer(Modifier.height(10.dp))
-                    OutlineButton("View text", { viewing = i }, Modifier.fillMaxWidth())
+            PrimaryButton(if (starting || d?.busy == true) "Reading..." else "Read new documents", { start(false) })
+            OutlineButton("Read all again", { start(true) }, Modifier.fillMaxWidth())
+
+            if (d == null) {
+                if (error == null) EmptyCard("Loading", "Checking the documents.")
+            } else if (d.items.isEmpty()) {
+                EmptyCard("No documents", "Upload documents to this case first.")
+            }
+
+            d?.items?.forEach { i ->
+                CourtCard {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(i.name, color = CE.Navy, fontSize = 17.sp, modifier = Modifier.weight(1f))
+                        if (i.filed) Pill("Filed") else Pill("Draft", CE.Chip, CE.Muted)
+                    }
+                    BodyText("${i.docType} · ${i.side}", Modifier.padding(top = 4.dp))
+                    Text(
+                        statusLine(i), fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
+                        color = if (i.status == "failed") CE.Red else CE.Teal,
+                        modifier = Modifier.padding(top = 6.dp)
+                    )
+                    if (i.status == "done" && i.message.isNotBlank()) BodyText(i.message, Modifier.padding(top = 4.dp))
+                    if (i.status == "done" && (i.pagesText + i.pagesOcr) > 0) {
+                        Spacer(Modifier.height(10.dp))
+                        OutlineButton("View text", { viewing = i }, Modifier.fillMaxWidth())
+                    }
                 }
             }
         }

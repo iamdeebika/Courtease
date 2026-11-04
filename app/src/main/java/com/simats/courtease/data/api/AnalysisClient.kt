@@ -20,6 +20,9 @@ interface AnalysisService {
 
     @GET("docs/{id}/pages")
     suspend fun pages(@Path("id") id: Int): Response<DocPagesDto>
+
+    @GET("cases/{id}/timeline")
+    suspend fun timeline(@Path("id") id: Int): Response<TimelineDto>
 }
 
 object AnalysisClient {

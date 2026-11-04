@@ -27,6 +27,7 @@ from b3 import UPLOAD_DIR, install_b3
 from b4 import install_b4
 from law import install_law
 from reader import install_reader
+from timeline import install_timeline
 
 Base.metadata.create_all(bind=engine)
 
@@ -968,3 +969,4 @@ install_b3(app, sys.modules[__name__])
 install_b4(app, sys.modules[__name__])
 install_law(app, sys.modules[__name__])
 install_reader(app, sys.modules[__name__])
+install_timeline(app, sys.modules[__name__])
