@@ -28,7 +28,7 @@ from b4 import install_b4
 from law import install_law
 from reader import install_reader
 from timeline import install_timeline
-
+from issues import install_issues
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="CourtEase API", version="4.0")
@@ -970,3 +970,4 @@ install_b4(app, sys.modules[__name__])
 install_law(app, sys.modules[__name__])
 install_reader(app, sys.modules[__name__])
 install_timeline(app, sys.modules[__name__])
+install_issues(app, sys.modules[__name__])

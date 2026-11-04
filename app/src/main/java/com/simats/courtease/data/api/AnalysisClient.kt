@@ -23,6 +23,9 @@ interface AnalysisService {
 
     @GET("cases/{id}/timeline")
     suspend fun timeline(@Path("id") id: Int): Response<TimelineDto>
+
+    @GET("cases/{id}/issues")
+    suspend fun issues(@Path("id") id: Int): Response<IssuesDto>
 }
 
 object AnalysisClient {
