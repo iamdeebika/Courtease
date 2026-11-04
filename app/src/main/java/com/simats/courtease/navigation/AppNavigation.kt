@@ -15,6 +15,7 @@ import com.simats.courtease.model.Role
 import com.simats.courtease.model.User
 import com.simats.courtease.ui.screens.AccountRequestsScreen
 import com.simats.courtease.ui.screens.AllocationScreen
+import com.simats.courtease.ui.screens.AnalysisScreen
 import com.simats.courtease.ui.screens.AuditLogScreen
 import com.simats.courtease.ui.screens.BenchCaseScreen
 import com.simats.courtease.ui.screens.CaseFormScreen
@@ -51,6 +52,7 @@ object Routes {
     const val PROFILE = "profile"
     const val LAW = "law"
     const val SAVED = "saved"
+    const val ANALYSIS = "analysis"
 
     const val REGISTRY = "registry"
     const val ACCOUNTS = "accounts"
@@ -150,7 +152,7 @@ fun AppNavigation() {
 
         composable(Routes.PROFILE) { ProfileScreen(onBack = back, onSignOut = signOut) }
 
-        // ---------- law search (lawyers and judges) ----------
+        // ---------- research and analysis (lawyers and judges) ----------
         composable("${Routes.LAW}/{id}", arguments = idArg) { entry ->
             val id = entry.arguments?.getInt("id") ?: 0
             LawSearchScreen(
@@ -162,6 +164,10 @@ fun AppNavigation() {
 
         composable("${Routes.SAVED}/{id}", arguments = idArg) { entry ->
             SavedPrecedentsScreen(caseId = entry.arguments?.getInt("id") ?: 0, onBack = back)
+        }
+
+        composable("${Routes.ANALYSIS}/{id}", arguments = idArg) { entry ->
+            AnalysisScreen(caseId = entry.arguments?.getInt("id") ?: 0, onBack = back)
         }
 
         // ---------- registry ----------
@@ -214,6 +220,7 @@ fun AppNavigation() {
                 onTeam = { nav.navigate("${Routes.LTEAM}/$id") },
                 onLaw = { nav.navigate("${Routes.LAW}/$id") },
                 onSavedLaw = { nav.navigate("${Routes.SAVED}/$id") },
+                onAnalysis = { nav.navigate("${Routes.ANALYSIS}/$id") },
                 onDeleted = back
             )
         }
@@ -276,7 +283,8 @@ fun AppNavigation() {
                 onBack = back,
                 onRecused = back,
                 onLaw = { nav.navigate("${Routes.LAW}/$id") },
-                onSavedLaw = { nav.navigate("${Routes.SAVED}/$id") }
+                onSavedLaw = { nav.navigate("${Routes.SAVED}/$id") },
+                onAnalysis = { nav.navigate("${Routes.ANALYSIS}/$id") }
             )
         }
     }

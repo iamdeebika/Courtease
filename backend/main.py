@@ -26,6 +26,7 @@ from security import create_token, decode_token, hash_secret, verify_secret
 from b3 import UPLOAD_DIR, install_b3
 from b4 import install_b4
 from law import install_law
+from reader import install_reader
 
 Base.metadata.create_all(bind=engine)
 
@@ -966,3 +967,4 @@ def delete_note(nid: int, judge: User = Depends(judge_user), db: Session = Depen
 install_b3(app, sys.modules[__name__])
 install_b4(app, sys.modules[__name__])
 install_law(app, sys.modules[__name__])
+install_reader(app, sys.modules[__name__])

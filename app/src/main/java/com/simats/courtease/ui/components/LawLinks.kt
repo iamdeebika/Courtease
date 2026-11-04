@@ -6,13 +6,15 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
 
-// Two rows shown on the lawyer's case screen and the judge's bench view.
+// Rows shown on the lawyer's case screen and the judge's bench view.
 @Composable
-fun LawLinks(onSearch: () -> Unit, onSaved: () -> Unit) {
+fun LawLinks(onSearch: () -> Unit, onSaved: () -> Unit, onAnalysis: () -> Unit = {}) {
+    ToolRow(Icons.Default.Info, "Case analysis", "Read documents, timeline, issues", onAnalysis)
     ToolRow(Icons.Default.Search, "Law and precedent", "Search judgments and orders", onSearch)
     ToolRow(Icons.Default.Star, "Saved precedents", "Only you can see these", onSaved)
 }
