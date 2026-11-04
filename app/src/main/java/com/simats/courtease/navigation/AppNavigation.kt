@@ -25,6 +25,7 @@ import com.simats.courtease.ui.screens.ForgotPasswordScreen
 import com.simats.courtease.ui.screens.JoinCaseScreen
 import com.simats.courtease.ui.screens.JudgeCasesScreen
 import com.simats.courtease.ui.screens.JudgeDashboardScreen
+import com.simats.courtease.ui.screens.LawSearchScreen
 import com.simats.courtease.ui.screens.LawyerCaseScreen
 import com.simats.courtease.ui.screens.LawyerDashboardScreen
 import com.simats.courtease.ui.screens.LoginScreen
@@ -33,6 +34,7 @@ import com.simats.courtease.ui.screens.NotificationsScreen
 import com.simats.courtease.ui.screens.ProfileScreen
 import com.simats.courtease.ui.screens.RegistryDashboardScreen
 import com.simats.courtease.ui.screens.ReportScreen
+import com.simats.courtease.ui.screens.SavedPrecedentsScreen
 import com.simats.courtease.ui.screens.ScrutinyScreen
 import com.simats.courtease.ui.screens.SignupScreen
 import com.simats.courtease.ui.screens.SplashScreen
@@ -47,6 +49,8 @@ object Routes {
     const val STATUS = "status"
     const val ALERTS = "alerts"
     const val PROFILE = "profile"
+    const val LAW = "law"
+    const val SAVED = "saved"
 
     const val REGISTRY = "registry"
     const val ACCOUNTS = "accounts"
@@ -146,6 +150,20 @@ fun AppNavigation() {
 
         composable(Routes.PROFILE) { ProfileScreen(onBack = back, onSignOut = signOut) }
 
+        // ---------- law search (lawyers and judges) ----------
+        composable("${Routes.LAW}/{id}", arguments = idArg) { entry ->
+            val id = entry.arguments?.getInt("id") ?: 0
+            LawSearchScreen(
+                caseId = id,
+                onBack = back,
+                onOpenSaved = { nav.navigate("${Routes.SAVED}/$id") }
+            )
+        }
+
+        composable("${Routes.SAVED}/{id}", arguments = idArg) { entry ->
+            SavedPrecedentsScreen(caseId = entry.arguments?.getInt("id") ?: 0, onBack = back)
+        }
+
         // ---------- registry ----------
         composable(Routes.REGISTRY) {
             RegistryDashboardScreen(
@@ -157,7 +175,6 @@ fun AppNavigation() {
                 onNotices = { nav.navigate(Routes.NOTICES) },
                 onAudit = { nav.navigate(Routes.AUDIT) },
                 onReports = { nav.navigate(Routes.REPORT) },
-
                 onNotifications = openAlerts,
                 onProfile = openProfile
             )
@@ -173,7 +190,6 @@ fun AppNavigation() {
         composable(Routes.ALLOCATION) { AllocationScreen(onBack = back) }
         composable(Routes.NOTICES) { NoticesScreen(onBack = back) }
         composable(Routes.AUDIT) { AuditLogScreen(onBack = back) }
-        composable(Routes.REPORT) { ReportScreen(onBack = back) }
         composable(Routes.REPORT) { ReportScreen(onBack = back) }
 
         // ---------- lawyer ----------
@@ -196,6 +212,8 @@ fun AppNavigation() {
                 onEdit = { nav.navigate("${Routes.LFORM}/$id") },
                 onDocs = { nav.navigate("${Routes.LDOCS}/$id") },
                 onTeam = { nav.navigate("${Routes.LTEAM}/$id") },
+                onLaw = { nav.navigate("${Routes.LAW}/$id") },
+                onSavedLaw = { nav.navigate("${Routes.SAVED}/$id") },
                 onDeleted = back
             )
         }
@@ -252,10 +270,13 @@ fun AppNavigation() {
         }
 
         composable("${Routes.JCASE}/{id}", arguments = idArg) { entry ->
+            val id = entry.arguments?.getInt("id") ?: 0
             BenchCaseScreen(
-                caseId = entry.arguments?.getInt("id") ?: 0,
+                caseId = id,
                 onBack = back,
-                onRecused = back
+                onRecused = back,
+                onLaw = { nav.navigate("${Routes.LAW}/$id") },
+                onSavedLaw = { nav.navigate("${Routes.SAVED}/$id") }
             )
         }
     }

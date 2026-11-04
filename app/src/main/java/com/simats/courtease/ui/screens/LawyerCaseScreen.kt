@@ -1,5 +1,5 @@
 package com.simats.courtease.ui.screens
-
+import com.simats.courtease.ui.components.LawLinks
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -57,6 +57,8 @@ fun LawyerCaseScreen(
     onEdit: () -> Unit,
     onDocs: () -> Unit,
     onTeam: () -> Unit,
+    onLaw: () -> Unit = {},
+    onSavedLaw: () -> Unit = {},
     onDeleted: () -> Unit
 ) {
     val context = LocalContext.current
@@ -126,6 +128,8 @@ fun LawyerCaseScreen(
         SectionTitle("Workspace")
         ToolRow(Icons.AutoMirrored.Filled.List, "Documents", "${docs.size} on file or in draft", onDocs)
         ToolRow(Icons.Default.Person, "Team workspace", "$members advocate(s) · chat, notes, tasks", onTeam)
+        LawLinks(onLaw, onSavedLaw)
+
 
         SectionTitle("Orders")
         if (orders.isEmpty()) {

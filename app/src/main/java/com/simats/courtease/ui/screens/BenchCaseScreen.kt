@@ -1,5 +1,5 @@
 package com.simats.courtease.ui.screens
-
+import com.simats.courtease.ui.components.LawLinks
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -59,7 +59,13 @@ import com.simats.courtease.ui.theme.CE
 import kotlinx.coroutines.launch
 
 @Composable
-fun BenchCaseScreen(caseId: Int, onBack: () -> Unit, onRecused: () -> Unit) {
+fun BenchCaseScreen(
+    caseId: Int,
+    onBack: () -> Unit,
+    onRecused: () -> Unit,
+    onLaw: () -> Unit = {},
+    onSavedLaw: () -> Unit = {}
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val me = Session.userId
@@ -115,6 +121,7 @@ fun BenchCaseScreen(caseId: Int, onBack: () -> Unit, onRecused: () -> Unit) {
         if (late) WarnBanner("Response overdue", "The respondent has not appeared by ${c.responseDue}.")
 
         CaseProgressCard(c.status)
+        LawLinks(onLaw, onSavedLaw)
 
         if (canReview) PrimaryButton("Start review", {
             scope.launch { toast(CaseRepo.startReview(c.id) ?: "Review started") }
