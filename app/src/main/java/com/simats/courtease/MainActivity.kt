@@ -10,6 +10,7 @@ import com.simats.courtease.data.Session
 import com.simats.courtease.data.Store
 import com.simats.courtease.navigation.AppNavigation
 import com.simats.courtease.ui.components.SyncLoop
+import com.simats.courtease.ui.theme.CourtEaseStyle
 import com.simats.courtease.ui.theme.CourtEaseTheme
 
 class MainActivity : ComponentActivity() {
@@ -20,8 +21,10 @@ class MainActivity : ComponentActivity() {
         Session.restore(applicationContext)
         setContent {
             CourtEaseTheme {
-                SyncLoop()
-                AppNavigation()
+                CourtEaseStyle {
+                    SyncLoop()
+                    AppNavigation()
+                }
             }
         }
     }
