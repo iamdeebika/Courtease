@@ -32,6 +32,8 @@ from reader import install_reader
 from timeline import install_timeline
 from issues import install_issues
 from flags import install_flags
+from integrity import install_integrity
+from papers import install_papers
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="CourtEase API", version="4.0")
@@ -977,3 +979,5 @@ install_issues(app, sys.modules[__name__])
 install_flags(app, sys.modules[__name__])
 install_summary(app, sys.modules[__name__])
 install_report(app, sys.modules[__name__])
+install_integrity(app, sys.modules[__name__])
+install_papers(app, sys.modules[__name__])

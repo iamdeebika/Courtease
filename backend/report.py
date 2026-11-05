@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from flags import nice
+from integrity import DocFingerprint
 from law import SavedPrecedent
 from models import Case, Document, Order, User
 from summary import endpoint_of, leaks
@@ -171,7 +172,7 @@ def source_line(name: str, page: int, filed: bool, side: str = "") -> str:
 
 
 def build_pdf(*, judge_view, user, c, claimant, respondent, judge_name, docs, orders, tl, iss, fl,
-              precedents, has_drafts, unicode_ok, label, stamp) -> bytes:
+              precedents, has_drafts, unicode_ok, label, stamp, fps) -> bytes:
     pdf = Report(unicode_ok, "Automated assistance. Check every item against the source.")
     pdf.add_page()
 
@@ -209,8 +210,10 @@ def build_pdf(*, judge_view, user, c, claimant, respondent, judge_name, docs, or
     if not docs:
         pdf.body("No documents.")
     for d in docs:
+        code = fps.get(d.id, "")
+        extra = f" · fingerprint {code[:4]}-{code[4:8]}-{code[8:12]}" if code else ""
         pdf.indent(
-            f"• {d.name} — {d.doc_type}, {d.side.title()}, {'Filed' if d.filed else 'Draft'}, {d.pages} page(s)"
+            f"• {d.name} — {d.doc_type}, {d.side.title()}, {'Filed' if d.filed else 'Draft'}, {d.pages} page(s){extra}"
         )
     if tl.unread:
         pdf.ln(1)
@@ -298,8 +301,7 @@ def build_pdf(*, judge_view, user, c, claimant, respondent, judge_name, docs, or
         "the original page named under each item and check it before relying on anything here.",
         9.5, GREY,
     )
-    if not unicode_ok or True:
-        pdf.small("Text in scripts other than English may print as ? in this PDF. The source page has the original.")
+    pdf.small("Text in scripts other than English may print as ? in this PDF. The source page has the original.")
     return bytes(pdf.output())
 
 
@@ -359,13 +361,19 @@ def install_report(app, m):
         has_drafts = any((not d.filed) and d.side == my_side for d in docs)
         label = m.label(c)
 
+        fps = {}
+        if docs:
+            wanted = [d.id for d in docs]
+            for f in db.scalars(select(DocFingerprint).where(DocFingerprint.document_id.in_(wanted))):
+                fps[f.document_id] = f.sha256[:12].upper()
+
         data = build_pdf(
             judge_view=judge_view, user=user, c=c,
             claimant=lead_name(db, teams["claimant"]), respondent=lead_name(db, teams["respondent"]),
             judge_name=judge.full_name if judge else "", docs=docs, orders=orders,
             tl=tl, iss=iss, fl=fl, precedents=precedents, has_drafts=has_drafts,
             unicode_ok=fonts_ready(), label=label,
-            stamp=datetime.now().strftime("%d %b %Y, %I:%M %p"),
+            stamp=datetime.now().strftime("%d %b %Y, %I:%M %p"), fps=fps,
         )
 
         m.audit(db, user.id, "Exported bench brief" if judge_view else "Exported case report", label)

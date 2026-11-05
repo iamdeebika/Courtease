@@ -30,3 +30,6 @@ __pycache__/
 
 # Uploaded case documents stay on the server only
 backend/uploads/
+*.sql
+*.cebak
+backups/

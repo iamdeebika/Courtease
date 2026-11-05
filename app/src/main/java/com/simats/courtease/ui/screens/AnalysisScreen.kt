@@ -27,7 +27,8 @@ fun AnalysisScreen(caseId: Int, onBack: () -> Unit) {
         1 -> "Step 2: dated events"
         2 -> "Step 3: issues and evidence"
         3 -> "Step 4: points to verify"
-        else -> "Step 5: PDF report"
+        4 -> "Step 5: PDF report"
+        else -> "Notice and orders"
     }
 
     CourtScaffold(onBack = onBack) {
@@ -45,6 +46,7 @@ fun AnalysisScreen(caseId: Int, onBack: () -> Unit) {
             ChoiceChip("Issues", tab == 2) { tab = 2 }
             ChoiceChip("Verify", tab == 3) { tab = 3 }
             ChoiceChip("Report", tab == 4) { tab = 4 }
+            ChoiceChip("Papers", tab == 5) { tab = 5 }
         }
 
         when (tab) {
@@ -52,7 +54,8 @@ fun AnalysisScreen(caseId: Int, onBack: () -> Unit) {
             1 -> TimelineSection(caseId)
             2 -> IssuesSection(caseId)
             3 -> FlagsSection(caseId)
-            else -> ReportSection(caseId)
+            4 -> ReportSection(caseId)
+            else -> PapersSection(caseId)
         }
     }
 }

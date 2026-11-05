@@ -18,16 +18,29 @@ object CE {
     val Amber = Color(0xFFFFF1D6)
     val AmberText = Color(0xFF8A5A00)
     val Red = Color(0xFFB3261E)
+
+    // Added for the refreshed look.
+    val TealLight = Color(0xFF3E8E8A)
+    val NavyLight = Color(0xFF1D4A66)
+    val Gold = Color(0xFFF2B84B)
+    val MintDeep = Color(0xFFD3E8E4)
+    val Shadow = Color(0x26132E45)
 }
 
 private val Scheme = lightColorScheme(
     primary = CE.Teal,
     onPrimary = Color.White,
+    primaryContainer = CE.Mint,
+    onPrimaryContainer = CE.Teal,
     secondary = CE.Navy,
     background = CE.Bg,
     surface = Color.White,
+    surfaceVariant = CE.Chip,
     onBackground = CE.Navy,
-    onSurface = CE.Navy
+    onSurface = CE.Navy,
+    onSurfaceVariant = CE.Muted,
+    outline = CE.Border,
+    error = CE.Red
 )
 
 // Light theme only, so the screens match the Figma designs on every phone.

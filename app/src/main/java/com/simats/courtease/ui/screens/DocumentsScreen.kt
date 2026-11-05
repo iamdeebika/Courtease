@@ -33,6 +33,7 @@ import com.simats.courtease.ui.components.CourtCard
 import com.simats.courtease.ui.components.CourtScaffold
 import com.simats.courtease.ui.components.DropdownField
 import com.simats.courtease.ui.components.EmptyCard
+import com.simats.courtease.ui.components.IntegrityBadge
 import com.simats.courtease.ui.components.OutlineButton
 import com.simats.courtease.ui.components.Pill
 import com.simats.courtease.ui.components.PrimaryButton
@@ -80,7 +81,10 @@ fun DocumentsScreen(caseId: Int, onBack: () -> Unit) {
         val lead = CaseOps.isLead(c, me)
         val docs = CaseOps.visibleDocs(c, me)
 
-        ScreenHeader("DOCUMENTS", c.label, "Drafts are private to your side. Filed documents are seen by the judge and the other side.")
+        ScreenHeader(
+            "DOCUMENTS", c.label,
+            "Drafts are private to your side. Filed documents are seen by the judge and the other side."
+        )
 
         if (c.status != CaseStatus.CLOSED) {
             CourtCard {
@@ -106,6 +110,7 @@ fun DocumentsScreen(caseId: Int, onBack: () -> Unit) {
                     "${d.type} · ${d.pages} page(s) · ${Dates.stamp(d.at)}",
                     Modifier.padding(top = 4.dp)
                 )
+                IntegrityBadge(d.id, d.filed, d.hasFile)
                 if (!mine) {
                     Text(
                         "Filed by the other side", color = CE.Teal, fontSize = 14.sp,

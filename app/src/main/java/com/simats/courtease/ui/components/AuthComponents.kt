@@ -1,8 +1,25 @@
 package com.simats.courtease.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -12,12 +29,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -40,10 +60,37 @@ fun AuthScaffold(
     onBack: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    var shown by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { shown = true }
+    val enter by animateFloatAsState(
+        targetValue = if (shown) 1f else 0f,
+        animationSpec = tween(520, easing = FastOutSlowInEasing),
+        label = "authEnter"
+    )
+    val breathing = rememberInfiniteTransition(label = "logo")
+    val ring by breathing.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.06f,
+        animationSpec = infiniteRepeatable(tween(1800, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "ring"
+    )
+
     Column(
         Modifier
             .fillMaxSize()
             .background(Brush.verticalGradient(listOf(AuthNavyDeep, CE.Navy, CE.Teal)))
+            .drawBehind {
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.05f),
+                    radius = size.width * 0.55f,
+                    center = Offset(size.width * 0.95f, size.height * 0.05f)
+                )
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.04f),
+                    radius = size.width * 0.4f,
+                    center = Offset(size.width * 0.05f, size.height * 0.3f)
+                )
+            }
             .statusBarsPadding()
     ) {
         Box(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp)) {
@@ -55,6 +102,12 @@ fun AuthScaffold(
             Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     Modifier
+                        .graphicsLayer {
+                            val s = (0.6f + 0.4f * enter) * ring
+                            scaleX = s
+                            scaleY = s
+                            alpha = enter
+                        }
                         .size(64.dp)
                         .clip(CircleShape)
                         .background(Color.White.copy(alpha = 0.12f))
@@ -62,7 +115,10 @@ fun AuthScaffold(
                     contentAlignment = Alignment.Center
                 ) { Text("⚖", color = Color.White, fontSize = 30.sp) }
                 Spacer(Modifier.height(8.dp))
-                Text("CourtEase", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    "CourtEase", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.graphicsLayer { alpha = enter }
+                )
             }
         }
         Spacer(Modifier.height(12.dp))
@@ -70,6 +126,10 @@ fun AuthScaffold(
             Modifier
                 .weight(1f)
                 .fillMaxWidth()
+                .graphicsLayer {
+                    translationY = (1f - enter) * 120f
+                    alpha = enter
+                }
                 .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
                 .background(Color.White)
                 .verticalScroll(rememberScrollState())
@@ -78,7 +138,7 @@ fun AuthScaffold(
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Text(title, color = CE.Navy, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+            Text(title, color = CE.Navy, fontSize = 28.sp, fontWeight = FontWeight.Bold)
             if (subtitle != null) Text(subtitle, color = CE.Muted, fontSize = 16.sp)
             content()
         }
@@ -130,13 +190,21 @@ fun ShowHideButton(hidden: Boolean, onToggle: () -> Unit) {
 
 @Composable
 fun GradientButton(text: String, loading: Boolean = false, onClick: () -> Unit) {
+    val source = remember { MutableInteractionSource() }
+    val scale by pressScale(source, 0.97f)
     Box(
         Modifier
             .fillMaxWidth()
             .height(56.dp)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
             .clip(RoundedCornerShape(28.dp))
             .background(Brush.horizontalGradient(listOf(CE.Teal, AuthTealLight)))
-            .clickable(enabled = !loading, onClick = onClick),
+            .clickable(
+                interactionSource = source,
+                indication = LocalIndication.current,
+                enabled = !loading,
+                onClick = onClick
+            ),
         contentAlignment = Alignment.Center
     ) {
         if (loading) {
@@ -165,11 +233,24 @@ private fun RoleTile(
     onClick: () -> Unit
 ) {
     val shape = RoundedCornerShape(18.dp)
+    val bg by animateColorAsState(
+        targetValue = if (selected) CE.Mint else CE.Chip, animationSpec = tween(220), label = "roleBg"
+    )
+    val edge by animateColorAsState(
+        targetValue = if (selected) CE.Teal else CE.Teal.copy(alpha = 0f),
+        animationSpec = tween(220), label = "roleEdge"
+    )
+    val lift by animateFloatAsState(
+        targetValue = if (selected) 1.04f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+        label = "roleLift"
+    )
     Column(
         modifier
+            .graphicsLayer { scaleX = lift; scaleY = lift }
             .clip(shape)
-            .background(if (selected) CE.Mint else CE.Chip)
-            .border(2.dp, if (selected) CE.Teal else Color.Transparent, shape)
+            .background(bg)
+            .border(2.dp, edge, shape)
             .clickable(onClick = onClick)
             .padding(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -189,5 +270,13 @@ private fun RoleTile(
 
 @Composable
 fun ErrorLine(message: String?) {
-    if (message != null) Text(message, color = CE.Red, fontSize = 15.sp)
+    var last by remember { mutableStateOf("") }
+    SideEffect { if (message != null) last = message }
+    AnimatedVisibility(
+        visible = message != null,
+        enter = fadeIn(tween(200)) + expandVertically(tween(200)),
+        exit = fadeOut(tween(150)) + shrinkVertically(tween(150))
+    ) {
+        Text(message ?: last, color = CE.Red, fontSize = 15.sp)
+    }
 }

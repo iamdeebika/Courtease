@@ -1,13 +1,19 @@
 package com.simats.courtease.ui.screens
 
 import android.widget.Toast
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import com.simats.courtease.data.CaseRepo
+import com.simats.courtease.data.PapersRepo
+import com.simats.courtease.data.ReportOps
 import com.simats.courtease.data.Store
+import com.simats.courtease.data.api.ApiResult
 import com.simats.courtease.model.CaseStatus
 import com.simats.courtease.model.Dates
 import com.simats.courtease.ui.components.CourtScaffold
@@ -28,6 +34,18 @@ fun NoticesScreen(onBack: () -> Unit) {
     val issued = cases.filter { it.caseCode.isNotBlank() }.sortedByDescending { it.id }
 
     fun toast(message: String) = Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+
+    fun noticePdf(caseId: Int) {
+        scope.launch {
+            when (val r = PapersRepo.noticeBytes(caseId)) {
+                is ApiResult.Ok -> {
+                    val file = PapersRepo.save(context, "CourtEase_Notice_$caseId.pdf", r.data)
+                    ReportOps.view(context, file)?.let { toast(it) }
+                }
+                is ApiResult.Err -> toast(r.message)
+            }
+        }
+    }
 
     CourtScaffold(onBack = onBack) {
         ScreenHeader("REGISTRY", "Notices", "${ready.size} ready to issue")
@@ -64,14 +82,18 @@ fun NoticesScreen(onBack: () -> Unit) {
             RegistryCaseCard(
                 c,
                 detail = "Code ${c.caseCode} · due ${c.responseDue} · $state",
-                actions = if (!appeared) ({
-                    OutlineButton("Reissue code", {
-                        scope.launch {
-                            val result = CaseRepo.reissueCode(c.id)
-                            if (result == null) toast("New code ${Store.caseById(c.id)?.caseCode}") else toast(result)
-                        }
-                    }, Modifier.fillMaxWidth())
-                }) else null
+                actions = {
+                    OutlineButton("Notice PDF", { noticePdf(c.id) }, Modifier.fillMaxWidth())
+                    if (!appeared) {
+                        Spacer(Modifier.height(8.dp))
+                        OutlineButton("Reissue code", {
+                            scope.launch {
+                                val result = CaseRepo.reissueCode(c.id)
+                                if (result == null) toast("New code ${Store.caseById(c.id)?.caseCode}") else toast(result)
+                            }
+                        }, Modifier.fillMaxWidth())
+                    }
+                }
             )
         }
     }

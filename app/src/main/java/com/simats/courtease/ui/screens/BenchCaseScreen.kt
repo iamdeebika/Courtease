@@ -58,7 +58,7 @@ import com.simats.courtease.ui.components.SectionTitle
 import com.simats.courtease.ui.components.WarnBanner
 import com.simats.courtease.ui.theme.CE
 import kotlinx.coroutines.launch
-
+import com.simats.courtease.ui.components.IntegrityBadge
 @Composable
 fun BenchCaseScreen(
     caseId: Int,
@@ -170,6 +170,7 @@ fun BenchCaseScreen(
                     }
                     BodyText("${d.type} · ${d.pages} page(s) · ${Dates.stamp(d.at)}", Modifier.padding(top = 4.dp))
                     if (d.hasFile) {
+                        IntegrityBadge(d.id, d.filed, d.hasFile)
                         Spacer(Modifier.height(10.dp))
                         OutlineButton("Open", {
                             scope.launch {
