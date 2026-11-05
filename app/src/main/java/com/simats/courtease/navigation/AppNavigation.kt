@@ -41,6 +41,11 @@ import com.simats.courtease.ui.screens.SignupScreen
 import com.simats.courtease.ui.screens.SplashScreen
 import com.simats.courtease.ui.screens.StatusScreen
 import com.simats.courtease.ui.screens.TeamScreen
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 
 object Routes {
     const val SPLASH = "splash"
@@ -100,7 +105,14 @@ fun AppNavigation() {
     val openAlerts: () -> Unit = { nav.navigate(Routes.ALERTS) }
     val openProfile: () -> Unit = { nav.navigate(Routes.PROFILE) }
 
-    NavHost(navController = nav, startDestination = Routes.SPLASH) {
+    NavHost(
+        navController = nav,
+        startDestination = Routes.SPLASH,
+        enterTransition = { slideInHorizontally(tween(320)) { it / 8 } + fadeIn(tween(320)) },
+        exitTransition = { slideOutHorizontally(tween(320)) { -it / 12 } + fadeOut(tween(220)) },
+        popEnterTransition = { slideInHorizontally(tween(320)) { -it / 12 } + fadeIn(tween(320)) },
+        popExitTransition = { slideOutHorizontally(tween(320)) { it / 8 } + fadeOut(tween(220)) }
+    ) {
 
         composable(Routes.SPLASH) {
             SplashScreen(onFinished = {
