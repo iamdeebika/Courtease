@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
+from summary import install_summary
 
 from database import Base, engine, get_db
 from models import (
@@ -973,3 +974,4 @@ install_reader(app, sys.modules[__name__])
 install_timeline(app, sys.modules[__name__])
 install_issues(app, sys.modules[__name__])
 install_flags(app, sys.modules[__name__])
+install_summary(app, sys.modules[__name__])
