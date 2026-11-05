@@ -13,6 +13,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 from summary import install_summary
+from report import install_report
 
 from database import Base, engine, get_db
 from models import (
@@ -975,3 +976,4 @@ install_timeline(app, sys.modules[__name__])
 install_issues(app, sys.modules[__name__])
 install_flags(app, sys.modules[__name__])
 install_summary(app, sys.modules[__name__])
+install_report(app, sys.modules[__name__])

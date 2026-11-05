@@ -26,12 +26,15 @@ fun AnalysisScreen(caseId: Int, onBack: () -> Unit) {
         0 -> "Step 1: read the documents"
         1 -> "Step 2: dated events"
         2 -> "Step 3: issues and evidence"
-        else -> "Step 4: points to verify"
+        3 -> "Step 4: points to verify"
+        else -> "Step 5: PDF report"
     }
 
     CourtScaffold(onBack = onBack) {
         ScreenHeader("ANALYSIS", caseLabel, subtitle)
         InfoBanner("Automated assistance. Everything runs on the CourtEase server, and no text is sent to another company. Check every item against the source page.")
+
+        SummaryCard(caseId, tab)
 
         Row(
             Modifier.horizontalScroll(rememberScrollState()),
@@ -41,13 +44,15 @@ fun AnalysisScreen(caseId: Int, onBack: () -> Unit) {
             ChoiceChip("Timeline", tab == 1) { tab = 1 }
             ChoiceChip("Issues", tab == 2) { tab = 2 }
             ChoiceChip("Verify", tab == 3) { tab = 3 }
+            ChoiceChip("Report", tab == 4) { tab = 4 }
         }
 
         when (tab) {
             0 -> ReadingSection(caseId)
             1 -> TimelineSection(caseId)
             2 -> IssuesSection(caseId)
-            else -> FlagsSection(caseId)
+            3 -> FlagsSection(caseId)
+            else -> ReportSection(caseId)
         }
     }
 }

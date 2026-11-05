@@ -2,6 +2,7 @@ package com.simats.courtease.data.api
 
 import com.simats.courtease.data.Session
 import okhttp3.OkHttpClient
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -29,12 +30,21 @@ interface AnalysisService {
 
     @GET("cases/{id}/flags")
     suspend fun flags(@Path("id") id: Int): Response<FlagsDto>
+
+    @GET("cases/{id}/summary")
+    suspend fun summary(@Path("id") id: Int): Response<SummaryDto>
+
+    @POST("cases/{id}/analysis/seen")
+    suspend fun markSeen(@Path("id") id: Int): Response<MessageDto>
+
+    @GET("cases/{id}/report")
+    suspend fun report(@Path("id") id: Int): Response<ResponseBody>
 }
 
 object AnalysisClient {
     private val http = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(40, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
         .addInterceptor { chain ->
             val token = Session.token
             val request = if (token != null) {
