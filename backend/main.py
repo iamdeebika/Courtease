@@ -36,6 +36,7 @@ from integrity import install_integrity
 from papers import install_papers
 from history import install_history
 from upcoming import install_upcoming
+from guard import install_guard
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="CourtEase API", version="4.0")
@@ -985,3 +986,4 @@ install_integrity(app, sys.modules[__name__])
 install_papers(app, sys.modules[__name__])
 install_history(app, sys.modules[__name__])
 install_upcoming(app, sys.modules[__name__])
+install_guard(app, sys.modules[__name__])
