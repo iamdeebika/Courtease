@@ -106,6 +106,8 @@ fun LawyerDashboardScreen(
             StatCard("%02d".format(needAction.size + invites.size), "Need action", Modifier.weight(1f))
         }
 
+        UpcomingCard(onOpenCase)
+
         if (invites.isNotEmpty()) {
             SectionTitle("Invitations")
             invites.forEach { inv ->

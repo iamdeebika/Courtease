@@ -77,6 +77,8 @@ fun JudgeDashboardScreen(
             )
         }
 
+        UpcomingCard(onOpenCase)
+
         SectionTitle("Needs your attention")
         if (attention.isEmpty()) {
             EmptyCard("All clear", "No case is waiting for your review.")

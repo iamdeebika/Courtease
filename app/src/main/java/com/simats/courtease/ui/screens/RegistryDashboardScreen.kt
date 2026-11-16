@@ -94,6 +94,8 @@ fun RegistryDashboardScreen(
             WarnBanner("Response overdue: $overdue", "The notice period ended with no appearance.")
         }
 
+        UpcomingCard()
+
         SectionTitle("Registry work")
         ToolRow(Icons.Default.Person, "Account requests", "$pendingAccounts waiting", onAccounts)
         ToolRow(Icons.AutoMirrored.Filled.List, "Directory", "$approved approved users", onDirectory)
