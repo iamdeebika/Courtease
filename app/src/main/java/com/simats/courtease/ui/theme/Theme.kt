@@ -1,4 +1,4 @@
-package com.simats.courtease.ui.theme
+﻿package com.simats.courtease.ui.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
@@ -19,7 +19,6 @@ object CE {
     val AmberText = Color(0xFF8A5A00)
     val Red = Color(0xFFB3261E)
 
-    // Added for the refreshed look.
     val TealLight = Color(0xFF3E8E8A)
     val NavyLight = Color(0xFF1D4A66)
     val Gold = Color(0xFFF2B84B)
@@ -33,13 +32,22 @@ private val Scheme = lightColorScheme(
     primaryContainer = CE.Mint,
     onPrimaryContainer = CE.Teal,
     secondary = CE.Navy,
+    secondaryContainer = CE.Mint,
+    onSecondaryContainer = CE.Teal,
     background = CE.Bg,
     surface = Color.White,
+    surfaceTint = Color.Transparent,
     surfaceVariant = CE.Chip,
+    surfaceContainerLowest = Color.White,
+    surfaceContainerLow = Color.White,
+    surfaceContainer = Color.White,
+    surfaceContainerHigh = Color.White,
+    surfaceContainerHighest = CE.Chip,
     onBackground = CE.Navy,
     onSurface = CE.Navy,
     onSurfaceVariant = CE.Muted,
     outline = CE.Border,
+    outlineVariant = CE.Border,
     error = CE.Red
 )
 

@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -404,29 +405,57 @@ fun ToolRow(icon: ImageVector, title: String, subtitle: String, onClick: () -> U
 }
 
 @Composable
-private fun StageBar(active: Boolean, modifier: Modifier) {
-    val color by animateColorAsState(
-        targetValue = if (active) CE.Teal else CE.Track, animationSpec = tween(500), label = "stage"
+private fun StageCell(index: Int, count: Int, current: Int, label: String, modifier: Modifier) {
+    val done = index < current
+    val active = index == current
+    val dotColor by animateColorAsState(
+        targetValue = if (done || active) CE.Teal else CE.Track, animationSpec = tween(500), label = "dot"
     )
-    Box(modifier.height(5.dp).clip(RoundedCornerShape(50)).background(color))
+    val leftColor by animateColorAsState(
+        targetValue = if (index <= current) CE.Teal else CE.Track, animationSpec = tween(500), label = "left"
+    )
+    val rightColor by animateColorAsState(
+        targetValue = if (index < current) CE.Teal else CE.Track, animationSpec = tween(500), label = "right"
+    )
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.weight(1f).height(3.dp)
+                    .background(if (index == 0) Color.Transparent else leftColor)
+            )
+            Box(
+                Modifier
+                    .size(if (active) 28.dp else 22.dp)
+                    .clip(CircleShape)
+                    .background(if (active) Color.White else dotColor)
+                    .border(if (active) 3.dp else 0.dp, if (active) CE.Teal else Color.Transparent, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                if (done) {
+                    Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                } else if (active) {
+                    Box(Modifier.size(10.dp).clip(CircleShape).background(CE.Teal))
+                }
+            }
+            Box(
+                Modifier.weight(1f).height(3.dp)
+                    .background(if (index == count - 1) Color.Transparent else rightColor)
+            )
+        }
+        Spacer(Modifier.height(6.dp))
+        Text(
+            label, fontSize = 11.sp, lineHeight = 13.sp, textAlign = TextAlign.Center, maxLines = 2,
+            color = if (active) CE.Teal else CE.Muted,
+            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal
+        )
+    }
 }
 
 @Composable
 fun StageProgress(stage: String, stages: List<String>) {
     val current = stages.indexOf(stage).coerceAtLeast(0)
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        stages.forEachIndexed { i, _ -> StageBar(i <= current, Modifier.weight(1f)) }
-    }
-    Spacer(Modifier.height(8.dp))
     Row(Modifier.fillMaxWidth()) {
-        stages.forEachIndexed { i, s ->
-            Text(
-                s, modifier = Modifier.weight(1f), fontSize = 14.sp,
-                textAlign = TextAlign.Center,
-                color = if (i == current) CE.Teal else CE.Muted,
-                fontWeight = if (i == current) FontWeight.Bold else FontWeight.Normal
-            )
-        }
+        stages.forEachIndexed { i, s -> StageCell(i, stages.size, current, s, Modifier.weight(1f)) }
     }
 }
 
@@ -450,9 +479,17 @@ fun EmptyCard(title: String, text: String) {
         return
     }
     CourtCard {
-        Text(title, color = CE.Navy, fontSize = 19.sp, fontWeight = FontWeight.SemiBold)
-        Spacer(Modifier.height(6.dp))
-        BodyText(text)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(CE.Mint),
+                contentAlignment = Alignment.Center
+            ) { Icon(Icons.Default.Info, null, tint = CE.Teal) }
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Text(title, color = CE.Navy, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                BodyText(text, Modifier.padding(top = 2.dp))
+            }
+        }
     }
 }
 
