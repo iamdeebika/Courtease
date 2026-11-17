@@ -4,6 +4,7 @@ import com.simats.courtease.data.api.ApiResult
 import com.simats.courtease.data.api.LawClient
 import com.simats.courtease.data.api.LawResultDto
 import com.simats.courtease.data.api.LawSearchDto
+import com.simats.courtease.data.api.ManualBody
 import com.simats.courtease.data.api.MessageDto
 import com.simats.courtease.data.api.PagesDto
 import com.simats.courtease.data.api.SavedBody
@@ -28,6 +29,25 @@ object LawRepo {
                     SavedBody(
                         caseId, r.ref, r.title, r.court, r.kind, r.date,
                         r.snippet, r.page, r.sourceUrl, r.pageUrl, note.trim()
+                    )
+                )
+            }
+        ) {
+            is ApiResult.Ok -> null
+            is ApiResult.Err -> x.message
+        }
+
+    // A precedent the user found elsewhere and typed in. Returns an error text, or null when saved.
+    suspend fun saveManual(
+        caseId: Int, title: String, citation: String, court: String, date: String,
+        summary: String, link: String, note: String
+    ): String? =
+        when (
+            val x = safeCall {
+                api.saveManual(
+                    ManualBody(
+                        caseId, title.trim(), citation.trim(), court.trim(), date.trim(),
+                        summary.trim(), link.trim(), note.trim()
                     )
                 )
             }

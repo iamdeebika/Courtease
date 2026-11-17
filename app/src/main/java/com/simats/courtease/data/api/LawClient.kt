@@ -28,6 +28,7 @@ interface LawService {
     ): Response<PagesDto>
 
     @POST("precedents") suspend fun save(@Body body: SavedBody): Response<SavedDto>
+    @POST("precedents/manual") suspend fun saveManual(@Body body: ManualBody): Response<SavedDto>
     @GET("precedents") suspend fun saved(@Query("case_id") caseId: Int): Response<List<SavedDto>>
     @DELETE("precedents/{id}") suspend fun unsave(@Path("id") id: Int): Response<MessageDto>
 }
