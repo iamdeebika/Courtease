@@ -33,3 +33,8 @@ backend/uploads/
 *.sql
 *.cebak
 backups/
+backend/firebase-key.json
+app/google-services.json
+firebase-key.json
+*firebase-adminsdk*.json
+.idea/appInsightsSettings.xml

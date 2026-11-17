@@ -34,6 +34,7 @@ from issues import install_issues
 from flags import install_flags
 from integrity import install_integrity
 from papers import install_papers
+from push import install_push
 from history import install_history
 from upcoming import install_upcoming
 from guard import install_guard
@@ -974,6 +975,8 @@ def delete_note(nid: int, judge: User = Depends(judge_user), db: Session = Depen
     return MessageOut(message="Deleted")
 
 
+
+
 install_b3(app, sys.modules[__name__])
 install_b4(app, sys.modules[__name__])
 install_law(app, sys.modules[__name__])
@@ -989,3 +992,6 @@ install_history(app, sys.modules[__name__])
 install_upcoming(app, sys.modules[__name__])
 install_guard(app, sys.modules[__name__])
 install_manual(app, sys.modules[__name__])
+
+install_push(app, sys.modules[__name__])
+Base.metadata.create_all(bind=engine)
