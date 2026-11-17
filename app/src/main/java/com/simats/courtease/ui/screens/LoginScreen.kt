@@ -29,6 +29,7 @@ import com.simats.courtease.ui.components.AuthField
 import com.simats.courtease.ui.components.AuthScaffold
 import com.simats.courtease.ui.components.ErrorLine
 import com.simats.courtease.ui.components.GradientButton
+import com.simats.courtease.ui.components.ServerAddressButton
 import com.simats.courtease.ui.components.ShowHideButton
 import com.simats.courtease.ui.theme.CE
 import kotlinx.coroutines.launch
@@ -97,5 +98,6 @@ fun LoginScreen(onLoggedIn: (User) -> Unit, onSignup: () -> Unit, onForgot: () -
                 modifier = Modifier.clickable(onClick = onSignup)
             )
         }
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { ServerAddressButton() }
     }
 }

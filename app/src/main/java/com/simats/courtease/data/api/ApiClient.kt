@@ -17,6 +17,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
 import java.util.concurrent.TimeUnit
+import com.simats.courtease.data.ServerConfig
 
 interface ApiService {
     // accounts
@@ -113,7 +114,7 @@ interface ApiService {
 
 object ApiClient {
     // USB cable: run "adb reverse tcp:8000 tcp:8000" and keep 127.0.0.1.
-    const val BASE_URL = "http://127.0.0.1:8000/"
+    val BASE_URL: String get() = ServerConfig.url()
 
     private val http = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)

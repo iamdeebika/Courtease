@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import com.simats.courtease.data.ServerConfig
 import com.simats.courtease.data.Session
 import com.simats.courtease.data.Store
 import com.simats.courtease.navigation.AppNavigation
@@ -17,6 +18,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT))
         super.onCreate(savedInstanceState)
+        ServerConfig.init(applicationContext)
         Store.init(applicationContext)
         Session.restore(applicationContext)
         setContent {
