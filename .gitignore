@@ -38,3 +38,5 @@ app/google-services.json
 firebase-key.json
 *firebase-adminsdk*.json
 .idea/appInsightsSettings.xml
+
+logs/

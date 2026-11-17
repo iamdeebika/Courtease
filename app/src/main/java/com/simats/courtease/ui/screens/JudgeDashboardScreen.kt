@@ -1,9 +1,10 @@
-package com.simats.courtease.ui.screens
+﻿package com.simats.courtease.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
@@ -20,13 +21,14 @@ import com.simats.courtease.model.Dates
 import com.simats.courtease.model.label
 import com.simats.courtease.ui.components.BarIcon
 import com.simats.courtease.ui.components.CourtScaffold
+import com.simats.courtease.ui.components.DashHero
 import com.simats.courtease.ui.components.EmptyCard
+import com.simats.courtease.ui.components.IconStat
 import com.simats.courtease.ui.components.JudgeCaseCard
-import com.simats.courtease.ui.components.ScreenHeader
 import com.simats.courtease.ui.components.SearchField
 import com.simats.courtease.ui.components.SectionTitle
-import com.simats.courtease.ui.components.StatCard
 import com.simats.courtease.ui.components.WarnBanner
+import com.simats.courtease.ui.theme.CE
 
 @Composable
 fun JudgeDashboardScreen(
@@ -57,17 +59,21 @@ fun JudgeDashboardScreen(
             BarIcon(Icons.AutoMirrored.Filled.ExitToApp, "Sign out", onSignOut)
         }
     ) {
-        ScreenHeader(
+        DashHero(
             "JUDGE CHAMBERS",
             "${Dates.greeting()}, ${Session.shortName}",
-            "${user?.registryId.orEmpty()} · ${user?.courtroom.orEmpty()}, ${user?.court.orEmpty()}"
+            "${user?.registryId.orEmpty()} · ${user?.courtroom.orEmpty()}, ${user?.court.orEmpty()}",
+            user?.name ?: Session.shortName
         )
 
         SearchField(query, { query = it }, "Search cases before the court")
 
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            StatCard("%02d".format(open.size), "Open cases", Modifier.weight(1f))
-            StatCard("%02d".format(open.count { JudgeOps.needsAttention(it) }), "Need review", Modifier.weight(1f))
+            IconStat(Icons.Default.Info, open.size, "Open cases", Modifier.weight(1f))
+            IconStat(
+                Icons.Default.Notifications, open.count { JudgeOps.needsAttention(it) }, "Need review",
+                Modifier.weight(1f), tint = CE.AmberText, soft = CE.Amber
+            )
         }
 
         if (overdueCount > 0) {

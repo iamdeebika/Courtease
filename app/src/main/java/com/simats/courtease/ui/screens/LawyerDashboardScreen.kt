@@ -1,4 +1,4 @@
-package com.simats.courtease.ui.screens
+﻿package com.simats.courtease.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -25,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.simats.courtease.data.AccountRepo
@@ -38,14 +40,14 @@ import com.simats.courtease.ui.components.BarIcon
 import com.simats.courtease.ui.components.BodyText
 import com.simats.courtease.ui.components.CourtCard
 import com.simats.courtease.ui.components.CourtScaffold
+import com.simats.courtease.ui.components.DashHero
 import com.simats.courtease.ui.components.EmptyCard
+import com.simats.courtease.ui.components.IconStat
 import com.simats.courtease.ui.components.LawyerCaseCard
 import com.simats.courtease.ui.components.OutlineButton
 import com.simats.courtease.ui.components.PrimaryButton
-import com.simats.courtease.ui.components.ScreenHeader
 import com.simats.courtease.ui.components.SearchField
 import com.simats.courtease.ui.components.SectionTitle
-import com.simats.courtease.ui.components.StatCard
 import com.simats.courtease.ui.theme.CE
 import kotlinx.coroutines.launch
 
@@ -71,7 +73,7 @@ fun LawyerDashboardScreen(
     val invites = if (user != null) CaseOps.pendingInvites(user) else emptyList()
     val matching = all.filter {
         query.isBlank() || it.title.contains(query, true) || it.label.contains(query, true) ||
-                it.claimant.contains(query, true) || it.respondent.contains(query, true)
+            it.claimant.contains(query, true) || it.respondent.contains(query, true)
     }
     val needAction = matching.filter { CaseOps.editable(it) && CaseOps.isLead(it, me) }
     val others = matching.filter { it !in needAction }
@@ -93,17 +95,21 @@ fun LawyerDashboardScreen(
         },
         bottomSpace = 96.dp
     ) {
-        ScreenHeader(
+        DashHero(
             "ADVOCATE WORKSPACE",
             "${Dates.greeting()}, ${Session.shortName}",
-            "${user?.registryId.orEmpty()} · ${Dates.todayLong()}"
+            "${user?.registryId.orEmpty()} · ${Dates.todayLong()}",
+            user?.name ?: Session.shortName
         )
 
         SearchField(query, { query = it }, "Search my cases")
 
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            StatCard("%02d".format(all.size), "My cases", Modifier.weight(1f))
-            StatCard("%02d".format(needAction.size + invites.size), "Need action", Modifier.weight(1f))
+            IconStat(Icons.Default.Create, all.size, "My cases", Modifier.weight(1f))
+            IconStat(
+                Icons.Default.Notifications, needAction.size + invites.size, "Need action",
+                Modifier.weight(1f), tint = CE.AmberText, soft = CE.Amber
+            )
         }
 
         UpcomingCard(onOpenCase)
@@ -114,7 +120,7 @@ fun LawyerDashboardScreen(
                 val c = Store.caseById(inv.caseId)
                 val from = Store.user(inv.invitedBy)?.name.orEmpty()
                 CourtCard {
-                    Text(c?.title ?: "Case", color = CE.Navy, fontSize = 19.sp)
+                    Text(c?.title ?: "Case", color = CE.Navy, fontSize = 19.sp, fontWeight = FontWeight.SemiBold)
                     BodyText(
                         "$from invited you to join the ${inv.side.name.lowercase()}'s team",
                         Modifier.padding(top = 4.dp)

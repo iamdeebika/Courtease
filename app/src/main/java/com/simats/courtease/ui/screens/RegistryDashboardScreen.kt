@@ -1,4 +1,4 @@
-package com.simats.courtease.ui.screens
+﻿package com.simats.courtease.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -37,10 +37,10 @@ import com.simats.courtease.model.Dates
 import com.simats.courtease.model.Role
 import com.simats.courtease.ui.components.BarIcon
 import com.simats.courtease.ui.components.CourtScaffold
+import com.simats.courtease.ui.components.DashHero
+import com.simats.courtease.ui.components.IconStat
 import com.simats.courtease.ui.components.OutlineButton
-import com.simats.courtease.ui.components.ScreenHeader
 import com.simats.courtease.ui.components.SectionTitle
-import com.simats.courtease.ui.components.StatCard
 import com.simats.courtease.ui.components.ToolRow
 import com.simats.courtease.ui.components.WarnBanner
 import com.simats.courtease.ui.theme.CE
@@ -79,15 +79,20 @@ fun RegistryDashboardScreen(
             BarIcon(Icons.AutoMirrored.Filled.ExitToApp, "Sign out", onSignOut)
         }
     ) {
-        ScreenHeader("COURT REGISTRY", "${Dates.greeting()}, ${Session.shortName}", Dates.todayLong())
+        DashHero(
+            "COURT REGISTRY",
+            "${Dates.greeting()}, ${Session.shortName}",
+            Dates.todayLong(),
+            Session.user?.name ?: Session.shortName
+        )
 
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            StatCard("%02d".format(pendingAccounts), "Account requests", Modifier.weight(1f))
-            StatCard("%02d".format(filed), "Pending scrutiny", Modifier.weight(1f))
+            IconStat(Icons.Default.Person, pendingAccounts, "Account requests", Modifier.weight(1f))
+            IconStat(Icons.Default.Create, filed, "Pending scrutiny", Modifier.weight(1f))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            StatCard("%02d".format(registered), "To allocate", Modifier.weight(1f))
-            StatCard("%02d".format(toNotice), "To issue notice", Modifier.weight(1f))
+            IconStat(Icons.Default.LocationOn, registered, "To allocate", Modifier.weight(1f))
+            IconStat(Icons.Default.Email, toNotice, "To issue notice", Modifier.weight(1f))
         }
 
         if (overdue > 0) {
