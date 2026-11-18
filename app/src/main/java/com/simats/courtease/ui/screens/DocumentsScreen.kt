@@ -18,6 +18,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.delay
+import com.simats.courtease.data.AccountRepo
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -99,9 +102,25 @@ fun DocumentsScreen(caseId: Int, onBack: () -> Unit) {
         }
     }
 
+    // A case that was just created may not have reached this phone yet, so ask the server again before giving up.
+    var waited by remember { mutableStateOf(false) }
+    LaunchedEffect(caseId, c == null) {
+        if (c == null) {
+            AccountRepo.syncAll()
+            delay(2000)
+            AccountRepo.syncAll()
+            delay(2000)
+            waited = true
+        }
+    }
+
     CourtScaffold(onBack = onBack) {
         if (c == null || side == null) {
-            EmptyCard("Case not found", "This case may have been removed, or you are not on it.")
+            if (waited) {
+                EmptyCard("Case not found", "This case may have been removed, or you are not on it.")
+            } else {
+                EmptyCard("Loading", "Fetching your case.")
+            }
             return@CourtScaffold
         }
         val types = if (side == Side.RESPONDENT) RESPONDENT_TYPES else CLAIMANT_TYPES
