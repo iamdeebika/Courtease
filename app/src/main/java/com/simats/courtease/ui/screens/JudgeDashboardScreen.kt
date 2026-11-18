@@ -2,6 +2,8 @@
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Info
@@ -68,7 +70,7 @@ fun JudgeDashboardScreen(
 
         SearchField(query, { query = it }, "Search cases before the court")
 
-        Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        Row(Modifier.height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             IconStat(Icons.Default.Info, open.size, "Open cases", Modifier.weight(1f))
             IconStat(
                 Icons.Default.Notifications, open.count { JudgeOps.needsAttention(it) }, "Need review",

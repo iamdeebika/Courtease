@@ -119,7 +119,9 @@ private fun fieldColors() = OutlinedTextFieldDefaults.colors(
     focusedTextColor = CE.Navy,
     unfocusedTextColor = CE.Navy,
     disabledTextColor = CE.Muted,
-    cursorColor = CE.Teal
+    cursorColor = CE.Teal,
+    focusedLabelColor = CE.Teal,
+    unfocusedLabelColor = CE.Muted
 )
 
 @Composable
@@ -134,24 +136,22 @@ fun CourtField(
     keyboardType: KeyboardType = KeyboardType.Text,
     trailing: (@Composable () -> Unit)? = null
 ) {
-    Column(modifier) {
-        FieldLabel(label)
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            enabled = enabled,
-            singleLine = true,
-            placeholder = if (placeholder.isNotEmpty()) {
-                { Text(placeholder, color = CE.Muted) }
-            } else null,
-            visualTransformation = if (masked) PasswordVisualTransformation() else VisualTransformation.None,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            trailingIcon = trailing,
-            shape = RoundedCornerShape(20.dp),
-            colors = fieldColors(),
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        enabled = enabled,
+        singleLine = true,
+        label = { Text(label) },
+        placeholder = if (placeholder.isNotEmpty()) {
+            { Text(placeholder, color = CE.Muted) }
+        } else null,
+        visualTransformation = if (masked) PasswordVisualTransformation() else VisualTransformation.None,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        trailingIcon = trailing,
+        shape = RoundedCornerShape(16.dp),
+        colors = fieldColors(),
+        modifier = modifier.fillMaxWidth()
+    )
 }
 
 @Composable
@@ -190,15 +190,32 @@ private fun PickerBox(value: String, icon: ImageVector, onClick: () -> Unit) {
 }
 
 @Composable
+private fun PickerField(
+    label: String, value: String, icon: ImageVector, onClick: () -> Unit, modifier: Modifier = Modifier
+) {
+    Box(modifier) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            readOnly = true,
+            singleLine = true,
+            label = { Text(label) },
+            trailingIcon = { Icon(icon, null, tint = CE.Teal) },
+            shape = RoundedCornerShape(16.dp),
+            colors = fieldColors(),
+            modifier = Modifier.fillMaxWidth()
+        )
+        Box(Modifier.matchParentSize().clip(RoundedCornerShape(16.dp)).clickable(onClick = onClick))
+    }
+}
+
+@Composable
 fun DropdownField(
     label: String, value: String, options: List<String>,
     onSelect: (String) -> Unit, modifier: Modifier = Modifier
 ) {
     var open by remember { mutableStateOf(false) }
-    Column(modifier) {
-        FieldLabel(label)
-        PickerBox(value.ifBlank { "Select" }, Icons.Default.KeyboardArrowDown) { open = true }
-    }
+    PickerField(label, value, Icons.Default.KeyboardArrowDown, { open = true }, modifier)
     if (open) {
         UiSheet(title = label, onDismiss = { open = false }) {
             options.forEach { o ->
@@ -226,8 +243,5 @@ fun DropdownField(
 
 @Composable
 fun DateField(label: String, value: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier) {
-        FieldLabel(label)
-        PickerBox(value.ifBlank { "Pick a date" }, Icons.Default.DateRange, onClick)
-    }
+    PickerField(label, value, Icons.Default.DateRange, onClick, modifier)
 }

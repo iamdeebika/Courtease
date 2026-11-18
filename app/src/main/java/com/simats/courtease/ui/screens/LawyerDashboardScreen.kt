@@ -3,6 +3,7 @@
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -104,7 +105,7 @@ fun LawyerDashboardScreen(
 
         SearchField(query, { query = it }, "Search my cases")
 
-        Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        Row(Modifier.height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             IconStat(Icons.Default.Create, all.size, "My cases", Modifier.weight(1f))
             IconStat(
                 Icons.Default.Notifications, needAction.size + invites.size, "Need action",

@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -235,12 +236,18 @@ fun ScreenHeader(eyebrow: String, title: String, subtitle: String? = null) {
 
 @Composable
 fun SectionTitle(title: String, action: String? = null, onAction: () -> Unit = {}) {
-    Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(title, color = CE.Navy, fontSize = 22.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+    Row(Modifier.fillMaxWidth().padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.width(4.dp).height(22.dp).clip(RoundedCornerShape(2.dp)).background(CE.Teal))
+        Spacer(Modifier.width(10.dp))
+        Text(title, color = CE.Navy, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
         if (action != null) {
             Text(
-                action, color = CE.Teal, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.clickable(onClick = onAction).padding(4.dp)
+                action, color = CE.Teal, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .clickable(onClick = onAction)
+                    .background(CE.Mint)
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
             )
         }
     }
@@ -332,11 +339,24 @@ fun InfoBanner(text: String) {
 
 @Composable
 fun WarnBanner(title: String, text: String, onClick: (() -> Unit)? = null) {
-    val base = Modifier.cardEntrance().fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(CE.Amber)
+    val shape = RoundedCornerShape(20.dp)
+    val base = Modifier
+        .cardEntrance()
+        .fillMaxWidth()
+        .clip(shape)
+        .background(CE.Amber)
+        .border(1.dp, CE.Gold.copy(alpha = 0.5f), shape)
     val m = if (onClick != null) base.clickable(onClick = onClick) else base
-    Column(m.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(title, color = CE.AmberText, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
-        Text(text, color = CE.AmberText, fontSize = 15.sp, lineHeight = 22.sp)
+    Row(m.padding(16.dp), verticalAlignment = Alignment.Top) {
+        Box(
+            Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(Color.White.copy(alpha = 0.7f)),
+            contentAlignment = Alignment.Center
+        ) { Icon(Icons.Default.Warning, null, tint = CE.AmberText) }
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(title, color = CE.AmberText, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+            Text(text, color = CE.AmberText, fontSize = 15.sp, lineHeight = 22.sp)
+        }
     }
 }
 
@@ -353,7 +373,7 @@ fun StatCard(value: String, label: String, modifier: Modifier = Modifier, fracti
     )
     val shown = if (number != null) counted.toString().padStart(value.length, '0') else value
 
-    CourtCard(modifier) {
+    CourtCard(modifier.heightIn(min = 112.dp).fillMaxHeight()) {
         Text(shown, color = if (fraction != null) CE.Teal else CE.Navy, fontSize = 36.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(6.dp))
         Text(

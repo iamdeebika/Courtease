@@ -92,7 +92,7 @@ fun IconStat(
         animationSpec = tween(800, easing = FastOutSlowInEasing),
         label = "stat"
     )
-    CourtCard(modifier) {
+    CourtCard(modifier.heightIn(min = 96.dp).fillMaxHeight()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(soft),

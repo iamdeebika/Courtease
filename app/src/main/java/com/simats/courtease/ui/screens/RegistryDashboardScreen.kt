@@ -3,6 +3,8 @@
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
@@ -86,11 +88,11 @@ fun RegistryDashboardScreen(
             Session.user?.name ?: Session.shortName
         )
 
-        Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        Row(Modifier.height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             IconStat(Icons.Default.Person, pendingAccounts, "Account requests", Modifier.weight(1f))
             IconStat(Icons.Default.Create, filed, "Pending scrutiny", Modifier.weight(1f))
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        Row(Modifier.height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             IconStat(Icons.Default.LocationOn, registered, "To allocate", Modifier.weight(1f))
             IconStat(Icons.Default.Email, toNotice, "To issue notice", Modifier.weight(1f))
         }
