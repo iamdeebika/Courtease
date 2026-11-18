@@ -3,7 +3,7 @@ package com.simats.courtease.data
 import android.content.Context
 import com.simats.courtease.data.api.ApiResult
 import com.simats.courtease.data.api.IntegrityCheckDto
-import com.simats.courtease.data.api.PapersClient
+import com.simats.courtease.data.api.ApiClient
 import com.simats.courtease.data.api.PapersDto
 import com.simats.courtease.data.api.safeCall
 import kotlinx.coroutines.Dispatchers
@@ -14,7 +14,7 @@ import java.io.File
 
 // Integrity checks, notice and order PDFs. Everything goes through the CourtEase server.
 object PapersRepo {
-    private val api get() = PapersClient.api
+    private val api get() = ApiClient.api
 
     suspend fun check(docId: Int): ApiResult<IntegrityCheckDto> = safeCall { api.integrity(docId) }
 

@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.simats.courtease.data.api.ApiResult
 import com.simats.courtease.data.api.PushOptionDto
-import com.simats.courtease.data.api.PushPrefsRepo
+import com.simats.courtease.data.PushPrefsRepo
 import com.simats.courtease.ui.components.BodyText
 import com.simats.courtease.ui.theme.CE
 import kotlinx.coroutines.launch

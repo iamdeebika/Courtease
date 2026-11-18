@@ -6,7 +6,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import com.google.firebase.messaging.FirebaseMessaging
 import com.simats.courtease.data.Session
-import com.simats.courtease.data.api.PushRepo
+import com.simats.courtease.data.PushRepo
 import com.simats.courtease.push.PushStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay

@@ -9,23 +9,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.simats.courtease.data.AccountRepo
-import com.simats.courtease.data.api.ApiClient
-import com.simats.courtease.data.api.ApiResult
-import com.simats.courtease.data.api.ReportDto
-import com.simats.courtease.data.api.safeCall
 import com.simats.courtease.ui.components.BodyText
 import com.simats.courtease.ui.components.CourtCard
 import com.simats.courtease.ui.components.CourtScaffold
@@ -38,27 +27,14 @@ import com.simats.courtease.ui.components.StatCard
 import com.simats.courtease.ui.components.ThinProgress
 import com.simats.courtease.ui.components.WarnBanner
 import com.simats.courtease.ui.theme.CE
-import kotlinx.coroutines.launch
+import com.simats.courtease.ui.viewmodel.ReportViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
-fun ReportScreen(onBack: () -> Unit) {
+fun ReportScreen(onBack: () -> Unit, vm: ReportViewModel = viewModel()) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var report by remember { mutableStateOf<ReportDto?>(null) }
-    var error by remember { mutableStateOf<String?>(null) }
-    var busy by remember { mutableStateOf(false) }
-
-    suspend fun load() {
-        when (val r = safeCall { ApiClient.api.report() }) {
-            is ApiResult.Ok -> {
-                report = r.data
-                error = null
-            }
-            is ApiResult.Err -> error = r.message
-        }
-    }
-
-    LaunchedEffect(Unit) { load() }
+    val report = vm.report
+    val error = vm.error
 
     CourtScaffold(onBack = onBack) {
         ScreenHeader("REGISTRY", "Reports")
@@ -145,20 +121,8 @@ fun ReportScreen(onBack: () -> Unit) {
         }
 
         BodyText("Reminders for overdue responses and due tasks are sent automatically every 30 minutes.")
-        PrimaryButton(if (busy) "Sending..." else "Send reminders now", {
-            if (!busy) {
-                busy = true
-                scope.launch {
-                    val message = when (val x = safeCall { ApiClient.api.runReminders() }) {
-                        is ApiResult.Ok -> x.data.message
-                        is ApiResult.Err -> x.message
-                    }
-                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                    AccountRepo.syncAll()
-                    load()
-                    busy = false
-                }
-            }
+        PrimaryButton(if (vm.busy) "Sending..." else "Send reminders now", {
+            vm.sendReminders { message -> Toast.makeText(context, message, Toast.LENGTH_SHORT).show() }
         })
     }
 }

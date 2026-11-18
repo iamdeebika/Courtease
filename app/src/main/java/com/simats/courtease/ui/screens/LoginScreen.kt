@@ -10,21 +10,15 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.sp
-import com.simats.courtease.data.AccountRepo
-import com.simats.courtease.data.Session
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.simats.courtease.model.User
+import com.simats.courtease.ui.viewmodel.LoginViewModel
 import com.simats.courtease.ui.components.AuthField
 import com.simats.courtease.ui.components.AuthScaffold
 import com.simats.courtease.ui.components.ErrorLine
@@ -32,50 +26,31 @@ import com.simats.courtease.ui.components.GradientButton
 import com.simats.courtease.ui.components.ServerAddressButton
 import com.simats.courtease.ui.components.ShowHideButton
 import com.simats.courtease.ui.theme.CE
-import kotlinx.coroutines.launch
 
 @Composable
-fun LoginScreen(onLoggedIn: (User) -> Unit, onSignup: () -> Unit, onForgot: () -> Unit) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var hidden by remember { mutableStateOf(true) }
-    var loading by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-
-    fun submit() {
-        if (loading) return
-        if (email.isBlank() || password.isEmpty()) {
-            error = "Enter your email and password"
-            return
-        }
-        loading = true
-        error = null
-        scope.launch {
-            val problem = AccountRepo.login(context, email, password)
-            loading = false
-            if (problem != null) error = problem else Session.user?.let(onLoggedIn)
-        }
-    }
-
+fun LoginScreen(
+    onLoggedIn: (User) -> Unit,
+    onSignup: () -> Unit,
+    onForgot: () -> Unit,
+    vm: LoginViewModel = viewModel()
+) {
     AuthScaffold(title = "Welcome back", subtitle = "Sign in to continue") {
         AuthField(
-            value = email,
-            onValueChange = { email = it; error = null },
+            value = vm.email,
+            onValueChange = vm::onEmail,
             label = "Email",
             icon = Icons.Default.Email,
             keyboardType = KeyboardType.Email
         )
         AuthField(
-            value = password,
-            onValueChange = { password = it; error = null },
+            value = vm.password,
+            onValueChange = vm::onPassword,
             label = "Password",
             icon = Icons.Default.Lock,
             keyboardType = KeyboardType.Password,
-            masked = hidden,
+            masked = vm.hidden,
             imeAction = ImeAction.Done,
-            trailing = { ShowHideButton(hidden) { hidden = !hidden } }
+            trailing = { ShowHideButton(vm.hidden) { vm.toggleHidden() } }
         )
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
             Text(
@@ -86,8 +61,8 @@ fun LoginScreen(onLoggedIn: (User) -> Unit, onSignup: () -> Unit, onForgot: () -
                 modifier = Modifier.clickable(onClick = onForgot)
             )
         }
-        ErrorLine(error)
-        GradientButton("Sign in", loading) { submit() }
+        ErrorLine(vm.error)
+        GradientButton("Sign in", vm.loading) { vm.submit(onLoggedIn) }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
             Text("New here? ", color = CE.Muted, fontSize = 16.sp)
             Text(

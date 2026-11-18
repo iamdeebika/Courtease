@@ -1,7 +1,7 @@
 package com.simats.courtease.data
 
 import com.simats.courtease.data.api.ApiResult
-import com.simats.courtease.data.api.LawClient
+import com.simats.courtease.data.api.ApiClient
 import com.simats.courtease.data.api.LawResultDto
 import com.simats.courtease.data.api.LawSearchDto
 import com.simats.courtease.data.api.ManualBody
@@ -13,19 +13,19 @@ import com.simats.courtease.data.api.safeCall
 
 // Law search and saved precedents. Everything goes through the CourtEase server.
 object LawRepo {
-    private val api get() = LawClient.api
+    private val api get() = ApiClient.api
 
     suspend fun search(query: String, offset: Int): ApiResult<LawSearchDto> =
-        safeCall { api.search(query.trim(), offset) }
+        safeCall { api.lawSearch(query.trim(), offset) }
 
     // One page of extracted text. The page number is 1-based; the server wants "after the previous page".
     suspend fun pageText(ref: String, page: Int): ApiResult<PagesDto> =
-        safeCall { api.pages(ref, (page - 1).coerceAtLeast(0), 1) }
+        safeCall { api.lawPages(ref, (page - 1).coerceAtLeast(0), 1) }
 
     suspend fun save(caseId: Int, r: LawResultDto, note: String): String? =
         when (
             val x = safeCall {
-                api.save(
+                api.savePrecedent(
                     SavedBody(
                         caseId, r.ref, r.title, r.court, r.kind, r.date,
                         r.snippet, r.page, r.sourceUrl, r.pageUrl, note.trim()
@@ -44,7 +44,7 @@ object LawRepo {
     ): String? =
         when (
             val x = safeCall {
-                api.saveManual(
+                api.saveManualPrecedent(
                     ManualBody(
                         caseId, title.trim(), citation.trim(), court.trim(), date.trim(),
                         summary.trim(), link.trim(), note.trim()
@@ -56,7 +56,7 @@ object LawRepo {
             is ApiResult.Err -> x.message
         }
 
-    suspend fun saved(caseId: Int): ApiResult<List<SavedDto>> = safeCall { api.saved(caseId) }
+    suspend fun saved(caseId: Int): ApiResult<List<SavedDto>> = safeCall { api.savedPrecedents(caseId) }
 
-    suspend fun unsave(id: Int): ApiResult<MessageDto> = safeCall { api.unsave(id) }
+    suspend fun unsave(id: Int): ApiResult<MessageDto> = safeCall { api.deletePrecedent(id) }
 }
