@@ -863,6 +863,10 @@ def reissue_code(cid: int, reg: User = Depends(registry_user), db: Session = Dep
 
 @app.post("/registry/reset-cases", response_model=MessageOut)
 def reset_cases(reg: User = Depends(registry_user), db: Session = Depends(get_db)):
+    import os as _os
+    from fastapi import HTTPException as _Http
+    if _os.getenv("APP_ENV", "").strip().lower() == "production":
+        raise _Http(status_code=403, detail="Not available in production")
     from seed_cases import seed_cases
 
     for table in (Order, PrivateNote, Document, CaseCounsel, Case):
@@ -995,3 +999,6 @@ install_manual(app, sys.modules[__name__])
 
 install_push(app, sys.modules[__name__])
 Base.metadata.create_all(bind=engine)
+
+from account_delete import install_account_delete
+install_account_delete(app, sys.modules[__name__])

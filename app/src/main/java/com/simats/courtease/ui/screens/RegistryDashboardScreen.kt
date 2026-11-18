@@ -112,10 +112,12 @@ fun RegistryDashboardScreen(
         ToolRow(Icons.Default.Star, "Reports", "Cases, stages and judge workload", onReports)
         ToolRow(Icons.Default.Info, "Audit log", "Account and case events", onAudit)
 
-        OutlineButton(
-            "Reset case data", { confirmReset = true },
-            Modifier.fillMaxWidth(), color = CE.Red
-        )
+        if ((context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0) {
+            OutlineButton(
+                "Reset case data", { confirmReset = true },
+                Modifier.fillMaxWidth(), color = CE.Red
+            )
+        }
     }
 
     if (confirmReset) {

@@ -24,6 +24,7 @@ import com.simats.courtease.ui.components.AuthScaffold
 import com.simats.courtease.ui.components.ErrorLine
 import com.simats.courtease.ui.components.GradientButton
 import com.simats.courtease.ui.components.ServerAddressButton
+import com.simats.courtease.ui.components.openLink
 import com.simats.courtease.ui.components.ShowHideButton
 import com.simats.courtease.ui.theme.CE
 
@@ -73,6 +74,15 @@ fun LoginScreen(
                 modifier = Modifier.clickable(onClick = onSignup)
             )
         }
-        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { ServerAddressButton() }
+        val debuggable = (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+        if (debuggable) {
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { ServerAddressButton() }
+        }
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Text(
+                "Privacy policy", color = CE.Muted, fontSize = 14.sp,
+                modifier = Modifier.clickable { openLink(context, "https://iamdeebika.github.io/courtease-privacy/") }
+            )
+        }
     }
 }
