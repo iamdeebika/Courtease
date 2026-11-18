@@ -13,7 +13,7 @@ try {
     exit 1
 }
 
-$tests = @("smoke_test.py", "check_manual_precedent.py", "check_privacy.py", "check_security.py", "push_rules_test.py")
+$tests = @("smoke_test.py", "check_manual_precedent.py", "check_privacy.py", "check_security.py", "push_rules_test.py", "check_isolation.py")
 Push-Location (Join-Path $root "backend")
 $summary = @()
 foreach ($t in $tests) {
@@ -39,3 +39,4 @@ Add-Content -Path $out -Value "===== SUMMARY"
 Add-Content -Path $out -Value $summary
 Write-Host ""
 Write-Host ("Full output saved in: " + $out)
+
